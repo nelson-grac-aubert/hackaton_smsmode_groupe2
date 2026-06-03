@@ -1,0 +1,36 @@
+# Dependencies
+node_modules
+npm-debug.log
+# Build outputs
+dist
+build
+*.tsbuildinfo
+# Version control
+.git
+.gitignore
+# IDE and editor files
+.cursor
+.vsc
+.zed
+.idea
+.vscode
+*.swp
+*.swo
+*~
+# Environment and configs
+.env
+.env.*
+!.env.development
+# Testing
+coverage
+.nyc_output
+test
+# CI/CD
+.forgejo
+.github
+.gitlab-ci.yml
+# Misc
+*.log
+.DS_Store
+README.md
+LICENSE
