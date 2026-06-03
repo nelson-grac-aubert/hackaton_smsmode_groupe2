@@ -25,6 +25,8 @@ services:
   postgres:
     image: postgres:${POSTGRES_TAG}
     user: postgres
+    ports:
+      - ${POSTGRES_PORT}:5432
     environment:
       POSTGRES_USER: ${POSTGRES_USER}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
@@ -39,24 +41,8 @@ services:
     networks:
       - app_network
 
-  adminer:
-    image: adminer:latest
-    restart: unless-stopped
-    ports:
-      - ${ADMINER_PORT}:8080
-    environment:
-      ADMINER_DEFAULT_SERVER: postgres
-    depends_on:
-      postgres:
-        condition: service_healthy
-    networks:
-      - app_network
-
-
-
 volumes:
   postgres_data:
-
 
 networks:
   app_network:

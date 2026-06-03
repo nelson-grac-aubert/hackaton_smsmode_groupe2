@@ -10,19 +10,7 @@ import {
 
 export class DatabaseConfig {
   @IsString()
-  POSTGRES_HOST: string;
-
-  @IsNumber()
-  POSTGRES_PORT: number;
-
-  @IsString()
-  POSTGRES_USER: string;
-
-  @IsString()
-  POSTGRES_PASSWORD: string;
-
-  @IsString()
-  POSTGRES_DB: string;
+  DATABASE_URL: string;
 }
 
 export class ServerConfig {
@@ -52,11 +40,7 @@ export class EnvironmentVariables {
 export function validateEnv(config: Record<string, unknown>) {
   const structuredConfig = {
     DATABASE: {
-      POSTGRES_HOST: config.POSTGRES_HOST,
-      POSTGRES_PORT: config.POSTGRES_PORT,
-      POSTGRES_USER: config.POSTGRES_USER,
-      POSTGRES_PASSWORD: config.POSTGRES_PASSWORD,
-      POSTGRES_DB: config.POSTGRES_DB,
+      DATABASE_URL: config.DATABASE_URL,
     },
 
     SERVER: {
