@@ -11,7 +11,6 @@ import {
   AuthError,
   RateLimitError,
   type RcsMessage,
-  type RcsStatusValue,
 } from '@smsmode/rcs';
 import { ConfigService } from '@nestjs/config';
 import {

@@ -29,8 +29,6 @@ export class AppService {
     return this.healthCheckService.check(checks);
   }
 
-
-
   private checkHeap() {
     return this.memoryHealthIndicator.checkHeap(
       'memory_heap',
