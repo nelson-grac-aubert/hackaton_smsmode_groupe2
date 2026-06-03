@@ -1,7 +1,7 @@
 /dist
 /node_modules
 /build
-
+.idea
 # Keep environment variables out of version control
 .env
 
