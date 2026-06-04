@@ -4,6 +4,7 @@ import {
   ServiceUnavailableException,
   BadRequestException,
 } from '@nestjs/common';
+import { createHash, randomBytes } from 'node:crypto';
 import { OTP } from 'otplib';
 import {
   SmsmodeRcsClient,
@@ -19,6 +20,7 @@ import {
 } from '../_utils/configs/env.config';
 import { CreateOtpCodeDto } from './_utils/dtos/request/create-otp-code.dto';
 import { VerifyOtpCodeDto } from './_utils/dtos/request/verify-otp-code.dto';
+import { CreateOtpAppDto } from './_utils/dtos/request/create-otp-app.dto';
 import { PrismaService } from '../prisma/prisma.service';
 
 type OtpEntry = {
@@ -101,5 +103,17 @@ export class OtpSmsModeService {
     const remainingAttempts = this.maxAttempts - entry.attempts;
     if (remainingAttempts <= 0) this.store.delete(dto.phoneNumber);
     return { valid: false };
+  }
+
+  async createApp(dto: CreateOtpAppDto) {
+    const apiKey = `sk_${randomBytes(24).toString('base64url')}`;
+
+    const apiKeyHash = createHash('sha256').update(apiKey).digest('hex');
+
+    const app = await this.prisma.otpApp.create({
+      data: { ...dto, apiKey: apiKeyHash },
+    });
+
+    return { id: app.id, name: app.name, apiKey };
   }
 }
