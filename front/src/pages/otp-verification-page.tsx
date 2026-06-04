@@ -4,7 +4,7 @@ import CheckoutHeader from '../components/CheckoutHeader';
 
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 59;
-const MASKED_PHONE = '06 •• •• 45';
+const MASKED_PHONE = '06 •• •• •• 81';
 
 type Step = 'payment' | 'verification' | 'confirmation';
 
@@ -375,6 +375,7 @@ const CSS = `
     font-size: 32px;
     font-weight: 500;
     line-height: 1.25;
+    letter-spacing: 0;
     color: var(--primary);
     margin-bottom: var(--space-md);
   }
