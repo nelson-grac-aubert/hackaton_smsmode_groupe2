@@ -1,0 +1,12 @@
+.git
+.idea
+node_modules
+front/node_modules
+front/dist
+back/node_modules
+back/dist
+coverage
+npm-debug.log*
+pnpm-debug.log*
+.env
+secrets
