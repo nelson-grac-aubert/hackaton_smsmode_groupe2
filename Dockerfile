@@ -18,9 +18,9 @@ RUN corepack enable && corepack prepare pnpm@10.33.3 --activate
 
 WORKDIR /app
 
-COPY package.json pnpm-lock.yaml ./
+COPY back/package.json pnpm-lock.yaml ./
 
-COPY prisma ./prisma 
+COPY back/prisma ./prisma
 
 RUN pnpm install
 

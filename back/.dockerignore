@@ -19,7 +19,7 @@ build
 *~
 # Environment and configs
 .env
-.env.*
+.env.example
 !.env.development
 # Testing
 coverage
