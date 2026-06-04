@@ -3,6 +3,7 @@ import {
   InternalServerErrorException,
   ServiceUnavailableException,
   BadRequestException,
+  BadGatewayException,
 } from '@nestjs/common';
 import { createHash, randomBytes } from 'node:crypto';
 import { OTP } from 'otplib';
@@ -11,6 +12,7 @@ import {
   RcsError,
   AuthError,
   RateLimitError,
+  SmsModeHttpError,
   type RcsMessage,
 } from '@smsmode/rcs';
 import { ConfigService } from '@nestjs/config';
@@ -46,15 +48,78 @@ export class OtpSmsModeService {
     });
   }
 
-  async generateOtp(dto: CreateOtpCodeDto) {
+  // async generateOtp(dto: CreateOtpCodeDto) {
+  //   const secret = this.otp.generateSecret();
+  //   const token = await this.otp.generate({ secret, counter: 0 });
+
+  //   let message: RcsMessage;
+  //   try {
+  //     message = await this.client.send({
+  //       recipient: { to: dto.phoneNumber },
+  //       body: { type: 'TEXT', text: `Votre code : ${token}` },
+  //     });
+  //   } catch (err) {
+  //     if (err instanceof AuthError) {
+  //       throw new InternalServerErrorException('OTP provider auth failed');
+  //     }
+  //     if (err instanceof RateLimitError) {
+  //       throw new ServiceUnavailableException('OTP provider rate limited');
+  //     }
+  //     if (err instanceof RcsError) {
+  //       throw new BadRequestException(`OTP send failed: ${err.message}`);
+  //     }
+  //     throw err;
+  //   }
+
+  //   this.store.set(dto.phoneNumber, {
+  //     secret,
+  //     expiresAt: Date.now() + this.ttlMs,
+  //     attempts: 0,
+  //   });
+
+  //   return { type: message.type, status: message.status.value };
+  // }
+
+    async generateOtp(dto: CreateOtpCodeDto) {
     const secret = this.otp.generateSecret();
     const token = await this.otp.generate({ secret, counter: 0 });
+
+      // TODO HASH
+
 
     let message: RcsMessage;
     try {
       message = await this.client.send({
         recipient: { to: dto.phoneNumber },
-        body: { type: 'TEXT', text: `Votre code : ${token}` },
+        body: { 
+          type: 'CARD',
+          orientation: 'VERTICAL',
+          content : 
+          {
+            title: `Votre code : ${token}`,
+            description: 'Cliquez sur le lien pour valider instantanément votre connexion.',
+            // media: 
+            // {
+            //   fileUrl: "https://www.smsmode.com/img/illus-error404.svg", //has to be an URL can be bypassed through ngrok 
+            //   height:'MEDIUM'
+            // },
+            suggestions: [
+              {
+                //one tap link
+                type: 'OPEN_URL', 
+                text: 'Valider mon code', 
+                postbackData: 'clic_validation_url', 
+                url: 'https://www.google.com/' //placeholder
+              },
+              {
+                //reply button 
+                type: 'REPLY', 
+                text: 'Renvoyer un code', 
+                postbackData: 'demande_renvoi_code' //sent to webhook
+              }
+            ]
+          }
+        }
       });
     } catch (err) {
       if (err instanceof AuthError) {
@@ -65,6 +130,11 @@ export class OtpSmsModeService {
       }
       if (err instanceof RcsError) {
         throw new BadRequestException(`OTP send failed: ${err.message}`);
+      }
+      if (err instanceof SmsModeHttpError) //5xx err 
+      {
+        console.error(`Erreur Serveur smsmode HTTP ${err.httpStatus} ${err.statusText}`);
+        throw new BadGatewayException("Le service d'envoi RCS est temporairement indisponible");
       }
       throw err;
     }
