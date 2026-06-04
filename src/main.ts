@@ -25,6 +25,8 @@ async function bootstrap() {
   const nodeEnv = serverConfig.NODE_ENV;
   const isProduction = nodeEnv === EnvironnementEnum.PROD;
 
+  app.set('trust proxy', 1);
+
   app
     .setGlobalPrefix('api/v1')
     .useGlobalPipes(new ValidationPipe(ValidationPipeOptionsConfig));
@@ -34,6 +36,8 @@ async function bootstrap() {
     .setDescription('Routes description of the sms-mode otp API')
     .setVersion('1.0')
     .addBearerAuth()
+    .addApiKey({ type: 'apiKey', name: 'x-api-key', in: 'header' }, 'ApiKey')
+    .addSecurityRequirements('ApiKey')
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/doc', app, document, SwaggerCustomOptionsConfig);
@@ -49,4 +53,4 @@ async function bootstrap() {
 
   return app.listen(port);
 }
-bootstrap();
+void bootstrap();

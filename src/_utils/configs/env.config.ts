@@ -3,6 +3,7 @@ import { Logger } from '@nestjs/common';
 import { plainToInstance, Type } from 'class-transformer';
 import {
   IsNumber,
+  IsOptional,
   IsString,
   ValidateNested,
   validateSync,
@@ -28,6 +29,10 @@ export class ServerConfig {
 
   @IsString()
   PUBLIC_URL: string;
+
+  @IsString()
+  @IsOptional()
+  PHONE_HMAC_SECRET: string;
 }
 
 export class EnvironmentVariables {
@@ -52,6 +57,7 @@ export function validateEnv(config: Record<string, unknown>) {
       FRONTEND_URL: config.FRONTEND_URL,
       OTP_API_KEY: config.OTP_API_KEY,
       PUBLIC_URL: config.PUBLIC_URL,
+      PHONE_HMAC_SECRET: config.PHONE_HMAC_SECRET,
     },
   };
 

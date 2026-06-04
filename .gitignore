@@ -1,7 +1,36 @@
+# Build
 /dist
-/node_modules
 /build
-.idea
-# Keep environment variables out of version control
-.env
+*.tsbuildinfo
 
+# Dependencies
+/node_modules
+
+# Environment — ne jamais committer les secrets
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea
+.vscode
+.cursor
+.zed
+*.swp
+*.swo
+*~
+
+# Tests
+/coverage
+.nyc_output
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Prisma — les types générés sont reconstruits au build
+src/generated/

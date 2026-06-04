@@ -6,10 +6,6 @@ export class CreateOtpCodeDto {
   @IsPhoneNumber()
   phoneNumber: string;
 
-  @ApiProperty({ example: 'cm_xyz123' })
-  @IsString()
-  appId: string;
-
   @ApiProperty({ example: 'sess_abc123' })
   @IsString()
   sessionId: string;

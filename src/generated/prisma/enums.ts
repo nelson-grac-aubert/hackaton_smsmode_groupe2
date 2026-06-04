@@ -26,3 +26,11 @@ export const Channel = {
 } as const
 
 export type Channel = (typeof Channel)[keyof typeof Channel]
+
+
+export const OtpMode = {
+  CLASSIC: 'CLASSIC',
+  GOOGLE_PROMPT: 'GOOGLE_PROMPT'
+} as const
+
+export type OtpMode = (typeof OtpMode)[keyof typeof OtpMode]

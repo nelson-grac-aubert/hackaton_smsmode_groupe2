@@ -31,7 +31,6 @@ export type OtpAppAvgAggregateOutputType = {
   codeLength: number | null
   maxAttempts: number | null
   resendCooldown: number | null
-  fallbackAfter: number | null
   rateLimitPhone: number | null
   rateLimitIp: number | null
 }
@@ -41,7 +40,6 @@ export type OtpAppSumAggregateOutputType = {
   codeLength: number | null
   maxAttempts: number | null
   resendCooldown: number | null
-  fallbackAfter: number | null
   rateLimitPhone: number | null
   rateLimitIp: number | null
 }
@@ -55,16 +53,13 @@ export type OtpAppMinAggregateOutputType = {
   codeLength: number | null
   maxAttempts: number | null
   resendCooldown: number | null
-  smsFallback: boolean | null
-  fallbackAfter: number | null
   oneTapEnabled: boolean | null
   verifyRedirectUrl: string | null
+  otpMode: $Enums.OtpMode | null
   senderLabel: string | null
-  brandColor: string | null
   logoUrl: string | null
   cardTitle: string | null
   messageTemplate: string | null
-  locale: string | null
   rateLimitPhone: number | null
   rateLimitIp: number | null
   reportEnabled: boolean | null
@@ -80,16 +75,13 @@ export type OtpAppMaxAggregateOutputType = {
   codeLength: number | null
   maxAttempts: number | null
   resendCooldown: number | null
-  smsFallback: boolean | null
-  fallbackAfter: number | null
   oneTapEnabled: boolean | null
   verifyRedirectUrl: string | null
+  otpMode: $Enums.OtpMode | null
   senderLabel: string | null
-  brandColor: string | null
   logoUrl: string | null
   cardTitle: string | null
   messageTemplate: string | null
-  locale: string | null
   rateLimitPhone: number | null
   rateLimitIp: number | null
   reportEnabled: boolean | null
@@ -105,16 +97,13 @@ export type OtpAppCountAggregateOutputType = {
   codeLength: number
   maxAttempts: number
   resendCooldown: number
-  smsFallback: number
-  fallbackAfter: number
   oneTapEnabled: number
   verifyRedirectUrl: number
+  otpMode: number
   senderLabel: number
-  brandColor: number
   logoUrl: number
   cardTitle: number
   messageTemplate: number
-  locale: number
   allowedCountries: number
   rateLimitPhone: number
   rateLimitIp: number
@@ -129,7 +118,6 @@ export type OtpAppAvgAggregateInputType = {
   codeLength?: true
   maxAttempts?: true
   resendCooldown?: true
-  fallbackAfter?: true
   rateLimitPhone?: true
   rateLimitIp?: true
 }
@@ -139,7 +127,6 @@ export type OtpAppSumAggregateInputType = {
   codeLength?: true
   maxAttempts?: true
   resendCooldown?: true
-  fallbackAfter?: true
   rateLimitPhone?: true
   rateLimitIp?: true
 }
@@ -153,16 +140,13 @@ export type OtpAppMinAggregateInputType = {
   codeLength?: true
   maxAttempts?: true
   resendCooldown?: true
-  smsFallback?: true
-  fallbackAfter?: true
   oneTapEnabled?: true
   verifyRedirectUrl?: true
+  otpMode?: true
   senderLabel?: true
-  brandColor?: true
   logoUrl?: true
   cardTitle?: true
   messageTemplate?: true
-  locale?: true
   rateLimitPhone?: true
   rateLimitIp?: true
   reportEnabled?: true
@@ -178,16 +162,13 @@ export type OtpAppMaxAggregateInputType = {
   codeLength?: true
   maxAttempts?: true
   resendCooldown?: true
-  smsFallback?: true
-  fallbackAfter?: true
   oneTapEnabled?: true
   verifyRedirectUrl?: true
+  otpMode?: true
   senderLabel?: true
-  brandColor?: true
   logoUrl?: true
   cardTitle?: true
   messageTemplate?: true
-  locale?: true
   rateLimitPhone?: true
   rateLimitIp?: true
   reportEnabled?: true
@@ -203,16 +184,13 @@ export type OtpAppCountAggregateInputType = {
   codeLength?: true
   maxAttempts?: true
   resendCooldown?: true
-  smsFallback?: true
-  fallbackAfter?: true
   oneTapEnabled?: true
   verifyRedirectUrl?: true
+  otpMode?: true
   senderLabel?: true
-  brandColor?: true
   logoUrl?: true
   cardTitle?: true
   messageTemplate?: true
-  locale?: true
   allowedCountries?: true
   rateLimitPhone?: true
   rateLimitIp?: true
@@ -316,16 +294,13 @@ export type OtpAppGroupByOutputType = {
   codeLength: number
   maxAttempts: number
   resendCooldown: number
-  smsFallback: boolean
-  fallbackAfter: number
   oneTapEnabled: boolean
   verifyRedirectUrl: string
+  otpMode: $Enums.OtpMode
   senderLabel: string
-  brandColor: string
   logoUrl: string | null
   cardTitle: string
   messageTemplate: string
-  locale: string
   allowedCountries: string[]
   rateLimitPhone: number
   rateLimitIp: number
@@ -365,16 +340,13 @@ export type OtpAppWhereInput = {
   codeLength?: Prisma.IntFilter<"OtpApp"> | number
   maxAttempts?: Prisma.IntFilter<"OtpApp"> | number
   resendCooldown?: Prisma.IntFilter<"OtpApp"> | number
-  smsFallback?: Prisma.BoolFilter<"OtpApp"> | boolean
-  fallbackAfter?: Prisma.IntFilter<"OtpApp"> | number
   oneTapEnabled?: Prisma.BoolFilter<"OtpApp"> | boolean
   verifyRedirectUrl?: Prisma.StringFilter<"OtpApp"> | string
+  otpMode?: Prisma.EnumOtpModeFilter<"OtpApp"> | $Enums.OtpMode
   senderLabel?: Prisma.StringFilter<"OtpApp"> | string
-  brandColor?: Prisma.StringFilter<"OtpApp"> | string
   logoUrl?: Prisma.StringNullableFilter<"OtpApp"> | string | null
   cardTitle?: Prisma.StringFilter<"OtpApp"> | string
   messageTemplate?: Prisma.StringFilter<"OtpApp"> | string
-  locale?: Prisma.StringFilter<"OtpApp"> | string
   allowedCountries?: Prisma.StringNullableListFilter<"OtpApp">
   rateLimitPhone?: Prisma.IntFilter<"OtpApp"> | number
   rateLimitIp?: Prisma.IntFilter<"OtpApp"> | number
@@ -392,16 +364,13 @@ export type OtpAppOrderByWithRelationInput = {
   codeLength?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   resendCooldown?: Prisma.SortOrder
-  smsFallback?: Prisma.SortOrder
-  fallbackAfter?: Prisma.SortOrder
   oneTapEnabled?: Prisma.SortOrder
   verifyRedirectUrl?: Prisma.SortOrder
+  otpMode?: Prisma.SortOrder
   senderLabel?: Prisma.SortOrder
-  brandColor?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   cardTitle?: Prisma.SortOrder
   messageTemplate?: Prisma.SortOrder
-  locale?: Prisma.SortOrder
   allowedCountries?: Prisma.SortOrder
   rateLimitPhone?: Prisma.SortOrder
   rateLimitIp?: Prisma.SortOrder
@@ -422,16 +391,13 @@ export type OtpAppWhereUniqueInput = Prisma.AtLeast<{
   codeLength?: Prisma.IntFilter<"OtpApp"> | number
   maxAttempts?: Prisma.IntFilter<"OtpApp"> | number
   resendCooldown?: Prisma.IntFilter<"OtpApp"> | number
-  smsFallback?: Prisma.BoolFilter<"OtpApp"> | boolean
-  fallbackAfter?: Prisma.IntFilter<"OtpApp"> | number
   oneTapEnabled?: Prisma.BoolFilter<"OtpApp"> | boolean
   verifyRedirectUrl?: Prisma.StringFilter<"OtpApp"> | string
+  otpMode?: Prisma.EnumOtpModeFilter<"OtpApp"> | $Enums.OtpMode
   senderLabel?: Prisma.StringFilter<"OtpApp"> | string
-  brandColor?: Prisma.StringFilter<"OtpApp"> | string
   logoUrl?: Prisma.StringNullableFilter<"OtpApp"> | string | null
   cardTitle?: Prisma.StringFilter<"OtpApp"> | string
   messageTemplate?: Prisma.StringFilter<"OtpApp"> | string
-  locale?: Prisma.StringFilter<"OtpApp"> | string
   allowedCountries?: Prisma.StringNullableListFilter<"OtpApp">
   rateLimitPhone?: Prisma.IntFilter<"OtpApp"> | number
   rateLimitIp?: Prisma.IntFilter<"OtpApp"> | number
@@ -449,16 +415,13 @@ export type OtpAppOrderByWithAggregationInput = {
   codeLength?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   resendCooldown?: Prisma.SortOrder
-  smsFallback?: Prisma.SortOrder
-  fallbackAfter?: Prisma.SortOrder
   oneTapEnabled?: Prisma.SortOrder
   verifyRedirectUrl?: Prisma.SortOrder
+  otpMode?: Prisma.SortOrder
   senderLabel?: Prisma.SortOrder
-  brandColor?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrderInput | Prisma.SortOrder
   cardTitle?: Prisma.SortOrder
   messageTemplate?: Prisma.SortOrder
-  locale?: Prisma.SortOrder
   allowedCountries?: Prisma.SortOrder
   rateLimitPhone?: Prisma.SortOrder
   rateLimitIp?: Prisma.SortOrder
@@ -483,16 +446,13 @@ export type OtpAppScalarWhereWithAggregatesInput = {
   codeLength?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
   maxAttempts?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
   resendCooldown?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
-  smsFallback?: Prisma.BoolWithAggregatesFilter<"OtpApp"> | boolean
-  fallbackAfter?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
   oneTapEnabled?: Prisma.BoolWithAggregatesFilter<"OtpApp"> | boolean
   verifyRedirectUrl?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
+  otpMode?: Prisma.EnumOtpModeWithAggregatesFilter<"OtpApp"> | $Enums.OtpMode
   senderLabel?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
-  brandColor?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
   logoUrl?: Prisma.StringNullableWithAggregatesFilter<"OtpApp"> | string | null
   cardTitle?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
   messageTemplate?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
-  locale?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
   allowedCountries?: Prisma.StringNullableListFilter<"OtpApp">
   rateLimitPhone?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
   rateLimitIp?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
@@ -509,16 +469,13 @@ export type OtpAppCreateInput = {
   codeLength?: number
   maxAttempts?: number
   resendCooldown?: number
-  smsFallback?: boolean
-  fallbackAfter?: number
   oneTapEnabled?: boolean
   verifyRedirectUrl: string
+  otpMode?: $Enums.OtpMode
   senderLabel?: string
-  brandColor?: string
   logoUrl?: string | null
   cardTitle?: string
   messageTemplate?: string
-  locale?: string
   allowedCountries?: Prisma.OtpAppCreateallowedCountriesInput | string[]
   rateLimitPhone?: number
   rateLimitIp?: number
@@ -536,16 +493,13 @@ export type OtpAppUncheckedCreateInput = {
   codeLength?: number
   maxAttempts?: number
   resendCooldown?: number
-  smsFallback?: boolean
-  fallbackAfter?: number
   oneTapEnabled?: boolean
   verifyRedirectUrl: string
+  otpMode?: $Enums.OtpMode
   senderLabel?: string
-  brandColor?: string
   logoUrl?: string | null
   cardTitle?: string
   messageTemplate?: string
-  locale?: string
   allowedCountries?: Prisma.OtpAppCreateallowedCountriesInput | string[]
   rateLimitPhone?: number
   rateLimitIp?: number
@@ -563,16 +517,13 @@ export type OtpAppUpdateInput = {
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   resendCooldown?: Prisma.IntFieldUpdateOperationsInput | number
-  smsFallback?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  fallbackAfter?: Prisma.IntFieldUpdateOperationsInput | number
   oneTapEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifyRedirectUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  otpMode?: Prisma.EnumOtpModeFieldUpdateOperationsInput | $Enums.OtpMode
   senderLabel?: Prisma.StringFieldUpdateOperationsInput | string
-  brandColor?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardTitle?: Prisma.StringFieldUpdateOperationsInput | string
   messageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
-  locale?: Prisma.StringFieldUpdateOperationsInput | string
   allowedCountries?: Prisma.OtpAppUpdateallowedCountriesInput | string[]
   rateLimitPhone?: Prisma.IntFieldUpdateOperationsInput | number
   rateLimitIp?: Prisma.IntFieldUpdateOperationsInput | number
@@ -590,16 +541,13 @@ export type OtpAppUncheckedUpdateInput = {
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   resendCooldown?: Prisma.IntFieldUpdateOperationsInput | number
-  smsFallback?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  fallbackAfter?: Prisma.IntFieldUpdateOperationsInput | number
   oneTapEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifyRedirectUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  otpMode?: Prisma.EnumOtpModeFieldUpdateOperationsInput | $Enums.OtpMode
   senderLabel?: Prisma.StringFieldUpdateOperationsInput | string
-  brandColor?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardTitle?: Prisma.StringFieldUpdateOperationsInput | string
   messageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
-  locale?: Prisma.StringFieldUpdateOperationsInput | string
   allowedCountries?: Prisma.OtpAppUpdateallowedCountriesInput | string[]
   rateLimitPhone?: Prisma.IntFieldUpdateOperationsInput | number
   rateLimitIp?: Prisma.IntFieldUpdateOperationsInput | number
@@ -617,16 +565,13 @@ export type OtpAppCreateManyInput = {
   codeLength?: number
   maxAttempts?: number
   resendCooldown?: number
-  smsFallback?: boolean
-  fallbackAfter?: number
   oneTapEnabled?: boolean
   verifyRedirectUrl: string
+  otpMode?: $Enums.OtpMode
   senderLabel?: string
-  brandColor?: string
   logoUrl?: string | null
   cardTitle?: string
   messageTemplate?: string
-  locale?: string
   allowedCountries?: Prisma.OtpAppCreateallowedCountriesInput | string[]
   rateLimitPhone?: number
   rateLimitIp?: number
@@ -643,16 +588,13 @@ export type OtpAppUpdateManyMutationInput = {
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   resendCooldown?: Prisma.IntFieldUpdateOperationsInput | number
-  smsFallback?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  fallbackAfter?: Prisma.IntFieldUpdateOperationsInput | number
   oneTapEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifyRedirectUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  otpMode?: Prisma.EnumOtpModeFieldUpdateOperationsInput | $Enums.OtpMode
   senderLabel?: Prisma.StringFieldUpdateOperationsInput | string
-  brandColor?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardTitle?: Prisma.StringFieldUpdateOperationsInput | string
   messageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
-  locale?: Prisma.StringFieldUpdateOperationsInput | string
   allowedCountries?: Prisma.OtpAppUpdateallowedCountriesInput | string[]
   rateLimitPhone?: Prisma.IntFieldUpdateOperationsInput | number
   rateLimitIp?: Prisma.IntFieldUpdateOperationsInput | number
@@ -669,16 +611,13 @@ export type OtpAppUncheckedUpdateManyInput = {
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   resendCooldown?: Prisma.IntFieldUpdateOperationsInput | number
-  smsFallback?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  fallbackAfter?: Prisma.IntFieldUpdateOperationsInput | number
   oneTapEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifyRedirectUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  otpMode?: Prisma.EnumOtpModeFieldUpdateOperationsInput | $Enums.OtpMode
   senderLabel?: Prisma.StringFieldUpdateOperationsInput | string
-  brandColor?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardTitle?: Prisma.StringFieldUpdateOperationsInput | string
   messageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
-  locale?: Prisma.StringFieldUpdateOperationsInput | string
   allowedCountries?: Prisma.OtpAppUpdateallowedCountriesInput | string[]
   rateLimitPhone?: Prisma.IntFieldUpdateOperationsInput | number
   rateLimitIp?: Prisma.IntFieldUpdateOperationsInput | number
@@ -703,16 +642,13 @@ export type OtpAppCountOrderByAggregateInput = {
   codeLength?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   resendCooldown?: Prisma.SortOrder
-  smsFallback?: Prisma.SortOrder
-  fallbackAfter?: Prisma.SortOrder
   oneTapEnabled?: Prisma.SortOrder
   verifyRedirectUrl?: Prisma.SortOrder
+  otpMode?: Prisma.SortOrder
   senderLabel?: Prisma.SortOrder
-  brandColor?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   cardTitle?: Prisma.SortOrder
   messageTemplate?: Prisma.SortOrder
-  locale?: Prisma.SortOrder
   allowedCountries?: Prisma.SortOrder
   rateLimitPhone?: Prisma.SortOrder
   rateLimitIp?: Prisma.SortOrder
@@ -725,7 +661,6 @@ export type OtpAppAvgOrderByAggregateInput = {
   codeLength?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   resendCooldown?: Prisma.SortOrder
-  fallbackAfter?: Prisma.SortOrder
   rateLimitPhone?: Prisma.SortOrder
   rateLimitIp?: Prisma.SortOrder
 }
@@ -739,16 +674,13 @@ export type OtpAppMaxOrderByAggregateInput = {
   codeLength?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   resendCooldown?: Prisma.SortOrder
-  smsFallback?: Prisma.SortOrder
-  fallbackAfter?: Prisma.SortOrder
   oneTapEnabled?: Prisma.SortOrder
   verifyRedirectUrl?: Prisma.SortOrder
+  otpMode?: Prisma.SortOrder
   senderLabel?: Prisma.SortOrder
-  brandColor?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   cardTitle?: Prisma.SortOrder
   messageTemplate?: Prisma.SortOrder
-  locale?: Prisma.SortOrder
   rateLimitPhone?: Prisma.SortOrder
   rateLimitIp?: Prisma.SortOrder
   reportEnabled?: Prisma.SortOrder
@@ -764,16 +696,13 @@ export type OtpAppMinOrderByAggregateInput = {
   codeLength?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   resendCooldown?: Prisma.SortOrder
-  smsFallback?: Prisma.SortOrder
-  fallbackAfter?: Prisma.SortOrder
   oneTapEnabled?: Prisma.SortOrder
   verifyRedirectUrl?: Prisma.SortOrder
+  otpMode?: Prisma.SortOrder
   senderLabel?: Prisma.SortOrder
-  brandColor?: Prisma.SortOrder
   logoUrl?: Prisma.SortOrder
   cardTitle?: Prisma.SortOrder
   messageTemplate?: Prisma.SortOrder
-  locale?: Prisma.SortOrder
   rateLimitPhone?: Prisma.SortOrder
   rateLimitIp?: Prisma.SortOrder
   reportEnabled?: Prisma.SortOrder
@@ -785,7 +714,6 @@ export type OtpAppSumOrderByAggregateInput = {
   codeLength?: Prisma.SortOrder
   maxAttempts?: Prisma.SortOrder
   resendCooldown?: Prisma.SortOrder
-  fallbackAfter?: Prisma.SortOrder
   rateLimitPhone?: Prisma.SortOrder
   rateLimitIp?: Prisma.SortOrder
 }
@@ -813,6 +741,10 @@ export type IntFieldUpdateOperationsInput = {
 
 export type BoolFieldUpdateOperationsInput = {
   set?: boolean
+}
+
+export type EnumOtpModeFieldUpdateOperationsInput = {
+  set?: $Enums.OtpMode
 }
 
 export type NullableStringFieldUpdateOperationsInput = {
@@ -851,16 +783,13 @@ export type OtpAppCreateWithoutChallengesInput = {
   codeLength?: number
   maxAttempts?: number
   resendCooldown?: number
-  smsFallback?: boolean
-  fallbackAfter?: number
   oneTapEnabled?: boolean
   verifyRedirectUrl: string
+  otpMode?: $Enums.OtpMode
   senderLabel?: string
-  brandColor?: string
   logoUrl?: string | null
   cardTitle?: string
   messageTemplate?: string
-  locale?: string
   allowedCountries?: Prisma.OtpAppCreateallowedCountriesInput | string[]
   rateLimitPhone?: number
   rateLimitIp?: number
@@ -877,16 +806,13 @@ export type OtpAppUncheckedCreateWithoutChallengesInput = {
   codeLength?: number
   maxAttempts?: number
   resendCooldown?: number
-  smsFallback?: boolean
-  fallbackAfter?: number
   oneTapEnabled?: boolean
   verifyRedirectUrl: string
+  otpMode?: $Enums.OtpMode
   senderLabel?: string
-  brandColor?: string
   logoUrl?: string | null
   cardTitle?: string
   messageTemplate?: string
-  locale?: string
   allowedCountries?: Prisma.OtpAppCreateallowedCountriesInput | string[]
   rateLimitPhone?: number
   rateLimitIp?: number
@@ -919,16 +845,13 @@ export type OtpAppUpdateWithoutChallengesInput = {
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   resendCooldown?: Prisma.IntFieldUpdateOperationsInput | number
-  smsFallback?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  fallbackAfter?: Prisma.IntFieldUpdateOperationsInput | number
   oneTapEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifyRedirectUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  otpMode?: Prisma.EnumOtpModeFieldUpdateOperationsInput | $Enums.OtpMode
   senderLabel?: Prisma.StringFieldUpdateOperationsInput | string
-  brandColor?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardTitle?: Prisma.StringFieldUpdateOperationsInput | string
   messageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
-  locale?: Prisma.StringFieldUpdateOperationsInput | string
   allowedCountries?: Prisma.OtpAppUpdateallowedCountriesInput | string[]
   rateLimitPhone?: Prisma.IntFieldUpdateOperationsInput | number
   rateLimitIp?: Prisma.IntFieldUpdateOperationsInput | number
@@ -945,16 +868,13 @@ export type OtpAppUncheckedUpdateWithoutChallengesInput = {
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
   maxAttempts?: Prisma.IntFieldUpdateOperationsInput | number
   resendCooldown?: Prisma.IntFieldUpdateOperationsInput | number
-  smsFallback?: Prisma.BoolFieldUpdateOperationsInput | boolean
-  fallbackAfter?: Prisma.IntFieldUpdateOperationsInput | number
   oneTapEnabled?: Prisma.BoolFieldUpdateOperationsInput | boolean
   verifyRedirectUrl?: Prisma.StringFieldUpdateOperationsInput | string
+  otpMode?: Prisma.EnumOtpModeFieldUpdateOperationsInput | $Enums.OtpMode
   senderLabel?: Prisma.StringFieldUpdateOperationsInput | string
-  brandColor?: Prisma.StringFieldUpdateOperationsInput | string
   logoUrl?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   cardTitle?: Prisma.StringFieldUpdateOperationsInput | string
   messageTemplate?: Prisma.StringFieldUpdateOperationsInput | string
-  locale?: Prisma.StringFieldUpdateOperationsInput | string
   allowedCountries?: Prisma.OtpAppUpdateallowedCountriesInput | string[]
   rateLimitPhone?: Prisma.IntFieldUpdateOperationsInput | number
   rateLimitIp?: Prisma.IntFieldUpdateOperationsInput | number
@@ -1002,16 +922,13 @@ export type OtpAppSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
   codeLength?: boolean
   maxAttempts?: boolean
   resendCooldown?: boolean
-  smsFallback?: boolean
-  fallbackAfter?: boolean
   oneTapEnabled?: boolean
   verifyRedirectUrl?: boolean
+  otpMode?: boolean
   senderLabel?: boolean
-  brandColor?: boolean
   logoUrl?: boolean
   cardTitle?: boolean
   messageTemplate?: boolean
-  locale?: boolean
   allowedCountries?: boolean
   rateLimitPhone?: boolean
   rateLimitIp?: boolean
@@ -1030,16 +947,13 @@ export type OtpAppSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
   codeLength?: boolean
   maxAttempts?: boolean
   resendCooldown?: boolean
-  smsFallback?: boolean
-  fallbackAfter?: boolean
   oneTapEnabled?: boolean
   verifyRedirectUrl?: boolean
+  otpMode?: boolean
   senderLabel?: boolean
-  brandColor?: boolean
   logoUrl?: boolean
   cardTitle?: boolean
   messageTemplate?: boolean
-  locale?: boolean
   allowedCountries?: boolean
   rateLimitPhone?: boolean
   rateLimitIp?: boolean
@@ -1056,16 +970,13 @@ export type OtpAppSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
   codeLength?: boolean
   maxAttempts?: boolean
   resendCooldown?: boolean
-  smsFallback?: boolean
-  fallbackAfter?: boolean
   oneTapEnabled?: boolean
   verifyRedirectUrl?: boolean
+  otpMode?: boolean
   senderLabel?: boolean
-  brandColor?: boolean
   logoUrl?: boolean
   cardTitle?: boolean
   messageTemplate?: boolean
-  locale?: boolean
   allowedCountries?: boolean
   rateLimitPhone?: boolean
   rateLimitIp?: boolean
@@ -1082,16 +993,13 @@ export type OtpAppSelectScalar = {
   codeLength?: boolean
   maxAttempts?: boolean
   resendCooldown?: boolean
-  smsFallback?: boolean
-  fallbackAfter?: boolean
   oneTapEnabled?: boolean
   verifyRedirectUrl?: boolean
+  otpMode?: boolean
   senderLabel?: boolean
-  brandColor?: boolean
   logoUrl?: boolean
   cardTitle?: boolean
   messageTemplate?: boolean
-  locale?: boolean
   allowedCountries?: boolean
   rateLimitPhone?: boolean
   rateLimitIp?: boolean
@@ -1099,7 +1007,7 @@ export type OtpAppSelectScalar = {
   createdAt?: boolean
 }
 
-export type OtpAppOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "mail" | "apiKey" | "ttlSeconds" | "codeLength" | "maxAttempts" | "resendCooldown" | "smsFallback" | "fallbackAfter" | "oneTapEnabled" | "verifyRedirectUrl" | "senderLabel" | "brandColor" | "logoUrl" | "cardTitle" | "messageTemplate" | "locale" | "allowedCountries" | "rateLimitPhone" | "rateLimitIp" | "reportEnabled" | "createdAt", ExtArgs["result"]["otpApp"]>
+export type OtpAppOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "mail" | "apiKey" | "ttlSeconds" | "codeLength" | "maxAttempts" | "resendCooldown" | "oneTapEnabled" | "verifyRedirectUrl" | "otpMode" | "senderLabel" | "logoUrl" | "cardTitle" | "messageTemplate" | "allowedCountries" | "rateLimitPhone" | "rateLimitIp" | "reportEnabled" | "createdAt", ExtArgs["result"]["otpApp"]>
 export type OtpAppInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   challenges?: boolean | Prisma.OtpApp$challengesArgs<ExtArgs>
   _count?: boolean | Prisma.OtpAppCountOutputTypeDefaultArgs<ExtArgs>
@@ -1121,16 +1029,13 @@ export type $OtpAppPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
     codeLength: number
     maxAttempts: number
     resendCooldown: number
-    smsFallback: boolean
-    fallbackAfter: number
     oneTapEnabled: boolean
     verifyRedirectUrl: string
+    otpMode: $Enums.OtpMode
     senderLabel: string
-    brandColor: string
     logoUrl: string | null
     cardTitle: string
     messageTemplate: string
-    locale: string
     allowedCountries: string[]
     rateLimitPhone: number
     rateLimitIp: number
@@ -1568,16 +1473,13 @@ export interface OtpAppFieldRefs {
   readonly codeLength: Prisma.FieldRef<"OtpApp", 'Int'>
   readonly maxAttempts: Prisma.FieldRef<"OtpApp", 'Int'>
   readonly resendCooldown: Prisma.FieldRef<"OtpApp", 'Int'>
-  readonly smsFallback: Prisma.FieldRef<"OtpApp", 'Boolean'>
-  readonly fallbackAfter: Prisma.FieldRef<"OtpApp", 'Int'>
   readonly oneTapEnabled: Prisma.FieldRef<"OtpApp", 'Boolean'>
   readonly verifyRedirectUrl: Prisma.FieldRef<"OtpApp", 'String'>
+  readonly otpMode: Prisma.FieldRef<"OtpApp", 'OtpMode'>
   readonly senderLabel: Prisma.FieldRef<"OtpApp", 'String'>
-  readonly brandColor: Prisma.FieldRef<"OtpApp", 'String'>
   readonly logoUrl: Prisma.FieldRef<"OtpApp", 'String'>
   readonly cardTitle: Prisma.FieldRef<"OtpApp", 'String'>
   readonly messageTemplate: Prisma.FieldRef<"OtpApp", 'String'>
-  readonly locale: Prisma.FieldRef<"OtpApp", 'String'>
   readonly allowedCountries: Prisma.FieldRef<"OtpApp", 'String[]'>
   readonly rateLimitPhone: Prisma.FieldRef<"OtpApp", 'Int'>
   readonly rateLimitIp: Prisma.FieldRef<"OtpApp", 'Int'>
