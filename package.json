@@ -35,6 +35,7 @@
     "class-validator": "^0.15.1",
     "otplib": "^13.4.1",
     "pg": "^8.21.0",
+    "pnpm": "^11.5.1",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
