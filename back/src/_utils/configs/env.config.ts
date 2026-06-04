@@ -25,6 +25,9 @@ export class ServerConfig {
 
   @IsString()
   OTP_API_KEY: string;
+
+  @IsString()
+  PUBLIC_URL: string;
 }
 
 export class EnvironmentVariables {
@@ -48,6 +51,7 @@ export function validateEnv(config: Record<string, unknown>) {
       NODE_ENV: config.NODE_ENV,
       FRONTEND_URL: config.FRONTEND_URL,
       OTP_API_KEY: config.OTP_API_KEY,
+      PUBLIC_URL: config.PUBLIC_URL,
     },
   };
 
