@@ -3,7 +3,7 @@ import { useState, useRef, useEffect, useCallback } from 'react';
 const BRAND = "L'Élégance";
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 59;
-const MASKED_PHONE = '06 •• •• 45';
+const MASKED_PHONE = '06 •• •• •• 81';
 
 type Step = 'payment' | 'verification' | 'confirmation';
 
