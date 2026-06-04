@@ -93,16 +93,16 @@ export class OtpSmsModeService {
         recipient: { to: dto.phoneNumber },
         body: { 
           type: 'CARD',
-          orientation: 'VERTICAL',
+          orientation: 'HORIZONTAL',
           content : 
           {
             title: `Votre code : ${token}`,
             description: 'Cliquez sur le lien pour valider instantanément votre connexion.',
-            // media: 
-            // {
-            //   fileUrl: "https://www.smsmode.com/img/illus-error404.svg", //has to be an URL can be bypassed through ngrok 
-            //   height:'MEDIUM'
-            // },
+            media: 
+            {
+              fileUrl: 'https://www.dummyimage.com/600x400/000/fff', //has to be an URL can be bypassed through ngrok 
+              height:'MEDIUM'
+            },
             suggestions: [
               {
                 //one tap link
@@ -110,12 +110,6 @@ export class OtpSmsModeService {
                 text: 'Valider mon code', 
                 postbackData: 'clic_validation_url', 
                 url: 'https://www.google.com/' //placeholder
-              },
-              {
-                //reply button 
-                type: 'REPLY', 
-                text: 'Renvoyer un code', 
-                postbackData: 'demande_renvoi_code' //sent to webhook
               }
             ]
           }
