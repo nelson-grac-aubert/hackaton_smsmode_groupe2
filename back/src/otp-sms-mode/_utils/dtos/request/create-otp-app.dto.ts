@@ -61,7 +61,7 @@ export class CreateOtpAppDto {
   oneTapEnabled?: boolean;
 
   @ApiProperty({ example: 'https://app.code4sud.fr/auth/callback' })
-  @IsUrl({ require_tld: false }) // require_tld: false → autorise localhost/ngrok en démo
+  @IsUrl({ require_tld: false })
   verifyRedirectUrl: string;
 
   @ApiPropertyOptional({ default: 'Verification', example: 'Nike ✓' })
