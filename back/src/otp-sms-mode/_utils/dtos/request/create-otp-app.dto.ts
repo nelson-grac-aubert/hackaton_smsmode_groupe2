@@ -10,12 +10,17 @@ import {
   IsUrl,
   Max,
   Min,
+  IsEmail,
 } from 'class-validator';
 
 export class CreateOtpAppDto {
   @ApiProperty({ example: 'code4sud' })
   @IsString()
   name: string;
+
+  @ApiProperty({ example: 'code4sud@gmail.com' })
+  @IsEmail()
+  mail: string;
 
   @ApiPropertyOptional({ default: 300, description: 'Validité du code (s)' })
   @IsOptional()
