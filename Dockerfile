@@ -6,7 +6,7 @@ WORKDIR /app/back
 COPY back/package.json back/pnpm-lock.yaml ./
 COPY back/prisma ./prisma
 COPY back/prisma.config.ts ./
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN pnpm install --no-frozen-lockfile --ignore-scripts
 
 
 FROM backend-deps AS backend
