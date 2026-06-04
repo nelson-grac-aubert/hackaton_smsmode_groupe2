@@ -19,4 +19,11 @@ export class OtpSmsModeController {
   verify(@Body() dto: VerifyOtpCodeDto) {
     return this.otpSmsModeService.verifyOtp(dto);
   }
+
+
+  @ApiOperation( {summary : 'Save app config Otp'})
+  @Post('otp-conf')
+  saveOtpConf(@Body() dto: CreateOtpCodeDto) {
+    return this.otpSmsModeService.
+  }
 }
