@@ -19,6 +19,7 @@ import {
 } from '../_utils/configs/env.config';
 import { CreateOtpCodeDto } from './_utils/dtos/request/create-otp-code.dto';
 import { VerifyOtpCodeDto } from './_utils/dtos/request/verify-otp-code.dto';
+import { PrismaService } from '../prisma/prisma.service';
 
 type OtpEntry = {
   secret: string;
@@ -36,6 +37,7 @@ export class OtpSmsModeService {
 
   constructor(
     private readonly configService: ConfigService<EnvironmentVariables, true>,
+    private readonly prisma: PrismaService,
   ) {
     this.client = new SmsmodeRcsClient({
       apiKey: this.configService.get<ServerConfig>('SERVER').OTP_API_KEY,
