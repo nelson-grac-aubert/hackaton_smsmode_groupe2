@@ -49,6 +49,7 @@ export type OtpAppSumAggregateOutputType = {
 export type OtpAppMinAggregateOutputType = {
   id: string | null
   name: string | null
+  mail: string | null
   apiKey: string | null
   ttlSeconds: number | null
   codeLength: number | null
@@ -73,6 +74,7 @@ export type OtpAppMinAggregateOutputType = {
 export type OtpAppMaxAggregateOutputType = {
   id: string | null
   name: string | null
+  mail: string | null
   apiKey: string | null
   ttlSeconds: number | null
   codeLength: number | null
@@ -97,6 +99,7 @@ export type OtpAppMaxAggregateOutputType = {
 export type OtpAppCountAggregateOutputType = {
   id: number
   name: number
+  mail: number
   apiKey: number
   ttlSeconds: number
   codeLength: number
@@ -144,6 +147,7 @@ export type OtpAppSumAggregateInputType = {
 export type OtpAppMinAggregateInputType = {
   id?: true
   name?: true
+  mail?: true
   apiKey?: true
   ttlSeconds?: true
   codeLength?: true
@@ -168,6 +172,7 @@ export type OtpAppMinAggregateInputType = {
 export type OtpAppMaxAggregateInputType = {
   id?: true
   name?: true
+  mail?: true
   apiKey?: true
   ttlSeconds?: true
   codeLength?: true
@@ -192,6 +197,7 @@ export type OtpAppMaxAggregateInputType = {
 export type OtpAppCountAggregateInputType = {
   id?: true
   name?: true
+  mail?: true
   apiKey?: true
   ttlSeconds?: true
   codeLength?: true
@@ -304,6 +310,7 @@ export type OtpAppGroupByArgs<ExtArgs extends runtime.Types.Extensions.InternalA
 export type OtpAppGroupByOutputType = {
   id: string
   name: string
+  mail: string
   apiKey: string
   ttlSeconds: number
   codeLength: number
@@ -352,6 +359,7 @@ export type OtpAppWhereInput = {
   NOT?: Prisma.OtpAppWhereInput | Prisma.OtpAppWhereInput[]
   id?: Prisma.StringFilter<"OtpApp"> | string
   name?: Prisma.StringFilter<"OtpApp"> | string
+  mail?: Prisma.StringFilter<"OtpApp"> | string
   apiKey?: Prisma.StringFilter<"OtpApp"> | string
   ttlSeconds?: Prisma.IntFilter<"OtpApp"> | number
   codeLength?: Prisma.IntFilter<"OtpApp"> | number
@@ -378,6 +386,7 @@ export type OtpAppWhereInput = {
 export type OtpAppOrderByWithRelationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  mail?: Prisma.SortOrder
   apiKey?: Prisma.SortOrder
   ttlSeconds?: Prisma.SortOrder
   codeLength?: Prisma.SortOrder
@@ -403,6 +412,7 @@ export type OtpAppOrderByWithRelationInput = {
 
 export type OtpAppWhereUniqueInput = Prisma.AtLeast<{
   id?: string
+  mail?: string
   apiKey?: string
   AND?: Prisma.OtpAppWhereInput | Prisma.OtpAppWhereInput[]
   OR?: Prisma.OtpAppWhereInput[]
@@ -428,11 +438,12 @@ export type OtpAppWhereUniqueInput = Prisma.AtLeast<{
   reportEnabled?: Prisma.BoolFilter<"OtpApp"> | boolean
   createdAt?: Prisma.DateTimeFilter<"OtpApp"> | Date | string
   challenges?: Prisma.OtpTransactionListRelationFilter
-}, "id" | "apiKey">
+}, "id" | "mail" | "apiKey">
 
 export type OtpAppOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  mail?: Prisma.SortOrder
   apiKey?: Prisma.SortOrder
   ttlSeconds?: Prisma.SortOrder
   codeLength?: Prisma.SortOrder
@@ -466,6 +477,7 @@ export type OtpAppScalarWhereWithAggregatesInput = {
   NOT?: Prisma.OtpAppScalarWhereWithAggregatesInput | Prisma.OtpAppScalarWhereWithAggregatesInput[]
   id?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
   name?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
+  mail?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
   apiKey?: Prisma.StringWithAggregatesFilter<"OtpApp"> | string
   ttlSeconds?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
   codeLength?: Prisma.IntWithAggregatesFilter<"OtpApp"> | number
@@ -491,6 +503,7 @@ export type OtpAppScalarWhereWithAggregatesInput = {
 export type OtpAppCreateInput = {
   id?: string
   name: string
+  mail: string
   apiKey: string
   ttlSeconds?: number
   codeLength?: number
@@ -517,6 +530,7 @@ export type OtpAppCreateInput = {
 export type OtpAppUncheckedCreateInput = {
   id?: string
   name: string
+  mail: string
   apiKey: string
   ttlSeconds?: number
   codeLength?: number
@@ -543,6 +557,7 @@ export type OtpAppUncheckedCreateInput = {
 export type OtpAppUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  mail?: Prisma.StringFieldUpdateOperationsInput | string
   apiKey?: Prisma.StringFieldUpdateOperationsInput | string
   ttlSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
@@ -569,6 +584,7 @@ export type OtpAppUpdateInput = {
 export type OtpAppUncheckedUpdateInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  mail?: Prisma.StringFieldUpdateOperationsInput | string
   apiKey?: Prisma.StringFieldUpdateOperationsInput | string
   ttlSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
@@ -595,6 +611,7 @@ export type OtpAppUncheckedUpdateInput = {
 export type OtpAppCreateManyInput = {
   id?: string
   name: string
+  mail: string
   apiKey: string
   ttlSeconds?: number
   codeLength?: number
@@ -620,6 +637,7 @@ export type OtpAppCreateManyInput = {
 export type OtpAppUpdateManyMutationInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  mail?: Prisma.StringFieldUpdateOperationsInput | string
   apiKey?: Prisma.StringFieldUpdateOperationsInput | string
   ttlSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
@@ -645,6 +663,7 @@ export type OtpAppUpdateManyMutationInput = {
 export type OtpAppUncheckedUpdateManyInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  mail?: Prisma.StringFieldUpdateOperationsInput | string
   apiKey?: Prisma.StringFieldUpdateOperationsInput | string
   ttlSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
@@ -678,6 +697,7 @@ export type StringNullableListFilter<$PrismaModel = never> = {
 export type OtpAppCountOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  mail?: Prisma.SortOrder
   apiKey?: Prisma.SortOrder
   ttlSeconds?: Prisma.SortOrder
   codeLength?: Prisma.SortOrder
@@ -713,6 +733,7 @@ export type OtpAppAvgOrderByAggregateInput = {
 export type OtpAppMaxOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  mail?: Prisma.SortOrder
   apiKey?: Prisma.SortOrder
   ttlSeconds?: Prisma.SortOrder
   codeLength?: Prisma.SortOrder
@@ -737,6 +758,7 @@ export type OtpAppMaxOrderByAggregateInput = {
 export type OtpAppMinOrderByAggregateInput = {
   id?: Prisma.SortOrder
   name?: Prisma.SortOrder
+  mail?: Prisma.SortOrder
   apiKey?: Prisma.SortOrder
   ttlSeconds?: Prisma.SortOrder
   codeLength?: Prisma.SortOrder
@@ -823,6 +845,7 @@ export type OtpAppUpdateOneRequiredWithoutChallengesNestedInput = {
 export type OtpAppCreateWithoutChallengesInput = {
   id?: string
   name: string
+  mail: string
   apiKey: string
   ttlSeconds?: number
   codeLength?: number
@@ -848,6 +871,7 @@ export type OtpAppCreateWithoutChallengesInput = {
 export type OtpAppUncheckedCreateWithoutChallengesInput = {
   id?: string
   name: string
+  mail: string
   apiKey: string
   ttlSeconds?: number
   codeLength?: number
@@ -889,6 +913,7 @@ export type OtpAppUpdateToOneWithWhereWithoutChallengesInput = {
 export type OtpAppUpdateWithoutChallengesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  mail?: Prisma.StringFieldUpdateOperationsInput | string
   apiKey?: Prisma.StringFieldUpdateOperationsInput | string
   ttlSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
@@ -914,6 +939,7 @@ export type OtpAppUpdateWithoutChallengesInput = {
 export type OtpAppUncheckedUpdateWithoutChallengesInput = {
   id?: Prisma.StringFieldUpdateOperationsInput | string
   name?: Prisma.StringFieldUpdateOperationsInput | string
+  mail?: Prisma.StringFieldUpdateOperationsInput | string
   apiKey?: Prisma.StringFieldUpdateOperationsInput | string
   ttlSeconds?: Prisma.IntFieldUpdateOperationsInput | number
   codeLength?: Prisma.IntFieldUpdateOperationsInput | number
@@ -970,6 +996,7 @@ export type OtpAppCountOutputTypeCountChallengesArgs<ExtArgs extends runtime.Typ
 export type OtpAppSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  mail?: boolean
   apiKey?: boolean
   ttlSeconds?: boolean
   codeLength?: boolean
@@ -997,6 +1024,7 @@ export type OtpAppSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs =
 export type OtpAppSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  mail?: boolean
   apiKey?: boolean
   ttlSeconds?: boolean
   codeLength?: boolean
@@ -1022,6 +1050,7 @@ export type OtpAppSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type OtpAppSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
   name?: boolean
+  mail?: boolean
   apiKey?: boolean
   ttlSeconds?: boolean
   codeLength?: boolean
@@ -1047,6 +1076,7 @@ export type OtpAppSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extens
 export type OtpAppSelectScalar = {
   id?: boolean
   name?: boolean
+  mail?: boolean
   apiKey?: boolean
   ttlSeconds?: boolean
   codeLength?: boolean
@@ -1069,7 +1099,7 @@ export type OtpAppSelectScalar = {
   createdAt?: boolean
 }
 
-export type OtpAppOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "apiKey" | "ttlSeconds" | "codeLength" | "maxAttempts" | "resendCooldown" | "smsFallback" | "fallbackAfter" | "oneTapEnabled" | "verifyRedirectUrl" | "senderLabel" | "brandColor" | "logoUrl" | "cardTitle" | "messageTemplate" | "locale" | "allowedCountries" | "rateLimitPhone" | "rateLimitIp" | "reportEnabled" | "createdAt", ExtArgs["result"]["otpApp"]>
+export type OtpAppOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "mail" | "apiKey" | "ttlSeconds" | "codeLength" | "maxAttempts" | "resendCooldown" | "smsFallback" | "fallbackAfter" | "oneTapEnabled" | "verifyRedirectUrl" | "senderLabel" | "brandColor" | "logoUrl" | "cardTitle" | "messageTemplate" | "locale" | "allowedCountries" | "rateLimitPhone" | "rateLimitIp" | "reportEnabled" | "createdAt", ExtArgs["result"]["otpApp"]>
 export type OtpAppInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   challenges?: boolean | Prisma.OtpApp$challengesArgs<ExtArgs>
   _count?: boolean | Prisma.OtpAppCountOutputTypeDefaultArgs<ExtArgs>
@@ -1085,6 +1115,7 @@ export type $OtpAppPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
     name: string
+    mail: string
     apiKey: string
     ttlSeconds: number
     codeLength: number
@@ -1531,6 +1562,7 @@ export interface Prisma__OtpAppClient<T, Null = never, ExtArgs extends runtime.T
 export interface OtpAppFieldRefs {
   readonly id: Prisma.FieldRef<"OtpApp", 'String'>
   readonly name: Prisma.FieldRef<"OtpApp", 'String'>
+  readonly mail: Prisma.FieldRef<"OtpApp", 'String'>
   readonly apiKey: Prisma.FieldRef<"OtpApp", 'String'>
   readonly ttlSeconds: Prisma.FieldRef<"OtpApp", 'Int'>
   readonly codeLength: Prisma.FieldRef<"OtpApp", 'Int'>

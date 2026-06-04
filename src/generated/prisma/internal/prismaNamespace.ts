@@ -595,6 +595,7 @@ export type TransactionIsolationLevel = (typeof TransactionIsolationLevel)[keyof
 export const OtpAppScalarFieldEnum = {
   id: 'id',
   name: 'name',
+  mail: 'mail',
   apiKey: 'apiKey',
   ttlSeconds: 'ttlSeconds',
   codeLength: 'codeLength',
