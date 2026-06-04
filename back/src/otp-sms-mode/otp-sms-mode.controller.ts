@@ -3,6 +3,7 @@ import { OtpSmsModeService } from './otp-sms-mode.service';
 import { ApiOperation } from '@nestjs/swagger';
 import { CreateOtpCodeDto } from './_utils/dtos/request/create-otp-code.dto';
 import { VerifyOtpCodeDto } from './_utils/dtos/request/verify-otp-code.dto';
+import { CreateOtpAppDto } from './_utils/dtos/request/create-otp-app.dto';
 
 @Controller('otp-sms-mode')
 export class OtpSmsModeController {
@@ -20,10 +21,9 @@ export class OtpSmsModeController {
     return this.otpSmsModeService.verifyOtp(dto);
   }
 
-
-  @ApiOperation( {summary : 'Save app config Otp'})
-  @Post('otp-conf')
-  saveOtpConf(@Body() dto: CreateOtpCodeDto) {
-    return this.otpSmsModeService.
+  @ApiOperation({ summary: 'Create OTP app config' })
+  @Post('apps')
+  createApp(@Body() dto: CreateOtpAppDto) {
+    return this.otpSmsModeService.createApp(dto);
   }
 }
