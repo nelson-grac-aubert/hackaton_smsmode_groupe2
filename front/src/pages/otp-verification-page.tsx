@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import CheckoutHeader from '../components/CheckoutHeader';
 
-const BRAND = "L'Élégance";
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 59;
 const MASKED_PHONE = '06 •• •• 45';
@@ -112,23 +113,6 @@ function SecurityBadge() {
   );
 }
 
-function BrandLogo() {
-  return (
-    <svg className="brand-logo" width="36" height="36" viewBox="0 0 36 36" fill="none" aria-label="L'Élégance monogramme">
-      <circle cx="18" cy="18" r="17" stroke="currentColor" strokeWidth="0.75"/>
-      <text
-        x="18" y="23"
-        textAnchor="middle"
-        fontFamily="Playfair Display, Georgia, serif"
-        fontSize="13"
-        fontWeight="500"
-        fill="currentColor"
-        letterSpacing="1"
-      >LE</text>
-    </svg>
-  );
-}
-
 function ConfirmationScreen() {
   return (
     <div className="confirm">
@@ -150,6 +134,8 @@ function ConfirmationScreen() {
 }
 
 export default function OtpVerificationPage() {
+  const location = useLocation();
+  const phoneNumber = (location.state as { phoneNumber?: string } | null)?.phoneNumber;
   const [code, setCode] = useState('');
   const [canResend, setCanResend] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -185,12 +171,7 @@ export default function OtpVerificationPage() {
     <>
       <style>{CSS}</style>
       <div className="page">
-        <header className="topbar">
-          <div className="topbar__brand-group">
-            <BrandLogo />
-            <span className="topbar__brand">{BRAND}</span>
-          </div>
-        </header>
+        <CheckoutHeader />
 
         <main className="main">
           <ProgressStepper current={confirmed ? 'confirmation' : 'verification'} />
@@ -202,7 +183,7 @@ export default function OtpVerificationPage() {
                 <h1 className="hero__title">Vérification de sécurité</h1>
                 <p className="hero__body">
                   Un code de confirmation a été envoyé à votre numéro se terminant par{' '}
-                  <strong className="hero__phone">{MASKED_PHONE}</strong>.{' '}
+                  <strong className="hero__phone">{phoneNumber ?? MASKED_PHONE}</strong>.{' '}
                   Veuillez le saisir ci-dessous pour valider votre achat.
                 </p>
               </section>
