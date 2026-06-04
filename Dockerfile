@@ -3,7 +3,7 @@ FROM node:22.14.0-alpine AS backend-deps
 RUN corepack enable && corepack prepare pnpm@10.33.3 --activate
 WORKDIR /app/back
 
-COPY back/package.json back/pnpm-lock.yaml ./
+COPY back/package.json ./
 COPY back/prisma ./prisma
 COPY back/prisma.config.ts ./
 RUN pnpm install --no-frozen-lockfile --ignore-scripts
