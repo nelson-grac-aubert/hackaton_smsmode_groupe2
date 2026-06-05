@@ -27,14 +27,14 @@ services:
       context: .
       dockerfile: Dockerfile
       target: backend
+    env_file:
+      - ./back/.env
     restart: unless-stopped
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-test}:${POSTGRES_PASSWORD:-test}@postgres:5432/${POSTGRES_DB:-test_db}
       NESTJS_PORT: 3000
       NODE_ENV: DEVELOPMENT
       FRONTEND_URL: http://localhost:${FRONTEND_PORT:-5173}
-      OTP_API_KEY: ${OTP_API_KEY:-x}
-      OTP_PROVIDER_MODE: ${OTP_PROVIDER_MODE:-mock}
       PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3000}
       PHONE_HMAC_SECRET: ${PHONE_HMAC_SECRET:-dev_phone_hmac_secret}
     ports:

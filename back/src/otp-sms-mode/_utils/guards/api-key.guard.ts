@@ -23,9 +23,8 @@ export class ApiKeyGuard implements CanActivate {
     const req = context.switchToHttp().getRequest<Request>();
     const rawKey = req.headers['x-api-key'];
 
-    if (!rawKey || typeof rawKey !== 'string') {
+    if (!rawKey || typeof rawKey !== 'string')
       throw new UnauthorizedException('Header x-api-key manquant');
-    }
 
     const keyHash = createHash('sha256').update(rawKey).digest('hex');
     const app = await this.prisma.otpApp.findUnique({

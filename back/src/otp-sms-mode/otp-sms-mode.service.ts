@@ -33,7 +33,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpSecurityService } from './otp-security.service';
 import { CreateOtpCodeDto } from './_utils/dtos/request/create-otp-code.dto';
-import { Channel, OtpMode, OtpStatus } from '../generated/prisma/enums';
+import { OtpMode, OtpStatus } from '../generated/prisma/enums';
 import { VerifyOtpCodeDto } from './_utils/dtos/request/verify-otp-code.dto';
 import { CreateOtpAppDto } from './_utils/dtos/request/create-otp-app.dto';
 import { OtpApp } from '../generated/prisma/client';
@@ -44,7 +44,6 @@ export class OtpSmsModeService {
   private readonly client: SmsmodeRcsClient;
   private readonly phoneHmacSecret: string;
   private readonly publicUrl: string;
-  private readonly otpProviderMode: string;
 
   constructor(
     private readonly configService: ConfigService<EnvironmentVariables, true>,
@@ -55,7 +54,6 @@ export class OtpSmsModeService {
     this.client = new SmsmodeRcsClient({ apiKey: serverConfig.OTP_API_KEY });
     this.phoneHmacSecret = serverConfig.PHONE_HMAC_SECRET;
     this.publicUrl = serverConfig.PUBLIC_URL;
-    this.otpProviderMode = serverConfig.OTP_PROVIDER_MODE ?? 'live';
   }
 
   async generateOtp(dto: CreateOtpCodeDto, app: OtpApp, clientIp: string) {
@@ -154,7 +152,6 @@ export class OtpSmsModeService {
       expiresAt,
       channel: message.type,
       status: txn.status,
-      ...(this.isProviderMockEnabled() ? { debugCode: code } : {}),
     };
   }
 
@@ -414,13 +411,6 @@ export class OtpSmsModeService {
     tapToken: string | null,
     body: RcsBody,
   ): Promise<RcsMessage> {
-    if (this.isProviderMockEnabled()) {
-      this.logger.warn(
-        `OTP provider en mode mock - aucun message RCS envoye pour app=${app.id} phone=${phoneNumber}`,
-      );
-      return { type: Channel.RCS } as unknown as RcsMessage;
-    }
-
     try {
       return await this.client.send({
         recipient: { to: phoneNumber },
@@ -448,10 +438,6 @@ export class OtpSmsModeService {
         );
       throw err;
     }
-  }
-
-  private isProviderMockEnabled(): boolean {
-    return this.otpProviderMode.toLowerCase() === 'mock';
   }
 
   private async isLogoUrlReachable(url: string): Promise<boolean> {

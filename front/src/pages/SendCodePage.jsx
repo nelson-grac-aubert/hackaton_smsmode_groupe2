@@ -1,4 +1,4 @@
-import { useState } from 'react'
+﻿import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import CheckoutHeader from '../components/CheckoutHeader'
 import './SendCodePage.css'
@@ -6,7 +6,14 @@ import './SendCodePage.css'
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1'
 
-const DEMO_APPS_STORAGE_KEY = 'otp_demo_apps_v2'
+const OTP_APPS = {
+  CLASSIC: {
+    apiKey: 'sk_OHpif5gj-rz22n5NxjBBf1EiB4bOlmLZ',
+  },
+  GOOGLE_PROMPT: {
+    apiKey: 'sk_7c5iTu-wVY55eOtnayv-8Fyf-hT2Kdj_',
+  },
+}
 
 const OTP_MODES = {
   CLASSIC: {
@@ -27,13 +34,17 @@ const order = {
     'https://lh3.googleusercontent.com/aida-public/AB6AXuB-O-0xU14n8rcD_uCyQhzk63Sdj_ab_dzbKyjIWz6R24feDSURtLT-SJyboHPEdmjxVHO3P-VBHqM8XNtCK4uJrecJ7D-Q_UI1FWPAxWB3kY-65uyzLRWrC2cbXw2iO1vEUjFHjb71oHohAma5ypcXupRyvmWfXohS-bY638qoK8i8uSVAT8QkydINcQjRiUqxMtmD6iuwNnV-iyLKAWjUH98FEf0B7JjTdahOJl6XU1prX6QOBKd09FYjof_cSz9Ro390df4DUrZM',
 }
 
-async function postJson(path, payload, apiKey) {
+function buildOtpHeaders(app) {
+  return {
+    'Content-Type': 'application/json',
+    'x-api-key': app.apiKey,
+  }
+}
+
+async function postJson(path, payload, app) {
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      ...(apiKey ? { 'x-api-key': apiKey } : {}),
-    },
+    headers: buildOtpHeaders(app),
     body: JSON.stringify(payload),
   })
 
@@ -57,78 +68,15 @@ function createSessionId() {
   return `sess_${Date.now()}_${Math.random().toString(16).slice(2)}`
 }
 
-function readStoredApps() {
-  try {
-    return JSON.parse(localStorage.getItem(DEMO_APPS_STORAGE_KEY) ?? '{}')
-  } catch {
-    return {}
-  }
-}
-
-function writeStoredApp(mode, app) {
-  const apps = readStoredApps()
-  localStorage.setItem(DEMO_APPS_STORAGE_KEY, JSON.stringify({ ...apps, [mode]: app }))
-}
-
-async function createDemoApp(mode) {
-  const suffix = `${mode.toLowerCase()}-${Date.now()}`
-  const createdApp = await postJson('/otp/apps', {
-    name: `Digital Atelier ${OTP_MODES[mode].label}`,
-    mail: `demo-${suffix}@example.com`,
-    verifyRedirectUrl: `${window.location.origin}/verification`,
-    ttlSeconds: 300,
-    codeLength: 6,
-    maxAttempts: 3,
-    resendCooldown: 0,
-    oneTapEnabled: mode === 'GOOGLE_PROMPT',
-    otpMode: mode,
-    senderLabel: 'Atelier',
-    cardTitle:
-      mode === 'GOOGLE_PROMPT'
-        ? 'Confirmez le chiffre affiché'
-        : 'Code de vérification',
-    messageTemplate: 'Votre code {{brand}} est valable {{ttl}} min.',
-    allowedCountries: ['FR'],
-    rateLimitPhone: 20,
-    rateLimitIp: 50,
-    reportEnabled: false,
-  })
-
-  const app = { id: createdApp.id, apiKey: createdApp.apiKey, mode }
-  writeStoredApp(mode, app)
-  return app
-}
-
-async function getDemoApp(mode) {
-  const storedApp = readStoredApps()[mode]
-  if (storedApp?.id && storedApp?.apiKey) return storedApp
-  return createDemoApp(mode)
-}
-
 async function generateOtp({ mode, phoneNumber }) {
   const sessionId = createSessionId()
-  let app = await getDemoApp(mode)
-
-  try {
-    const challenge = await postJson(
-      '/otp/generate',
-      { phoneNumber, sessionId },
-      app.apiKey,
-    )
-    return { ...challenge, ...app, sessionId }
-  } catch (error) {
-    if (error.status !== 401) throw error
-    const apps = readStoredApps()
-    delete apps[mode]
-    localStorage.setItem(DEMO_APPS_STORAGE_KEY, JSON.stringify(apps))
-    app = await createDemoApp(mode)
-    const challenge = await postJson(
-      '/otp/generate',
-      { phoneNumber, sessionId },
-      app.apiKey,
-    )
-    return { ...challenge, ...app, sessionId }
-  }
+  const app = OTP_APPS[mode]
+  const challenge = await postJson(
+    '/otp/generate',
+    { phoneNumber, sessionId },
+    app,
+  )
+  return { ...challenge, ...app, sessionId }
 }
 
 function SendCodePage() {
@@ -163,12 +111,10 @@ function SendCodePage() {
       navigate('/verification', {
         state: {
           apiKey: challenge.apiKey,
-          appId: challenge.id,
           challengeId: challenge.challengeId,
           expiresAt: challenge.expiresAt,
           mode,
           phoneNumber: trimmedPhoneNumber,
-          debugCode: challenge.debugCode,
           promptDigit: challenge.promptDigit,
           sessionId: challenge.sessionId,
         },
@@ -285,8 +231,8 @@ function SendCodePage() {
               verified_user
             </span>
             <p>
-              Le front crée automatiquement une app OTP de démo pour chaque
-              mode, puis utilise sa clé API pour générer le challenge.
+              Le front utilise la clé API configurée en dur pour le mode
+              sélectionné, puis génère le challenge OTP.
             </p>
           </div>
 
@@ -311,3 +257,4 @@ function SendCodePage() {
 }
 
 export default SendCodePage
+

@@ -19,7 +19,6 @@ type VerifyError = {
 type VerificationState = {
   apiKey?: string;
   challengeId?: string;
-  debugCode?: string;
   mode?: OtpMode;
   phoneNumber?: string;
   promptDigit?: number;
@@ -233,20 +232,32 @@ export default function OtpVerificationPage() {
   const state = location.state as VerificationState | null;
   const apiKey = state?.apiKey;
   const challengeId = state?.challengeId;
-  const debugCode = state?.debugCode;
   const mode = state?.mode ?? 'CLASSIC';
   const phoneNumber = state?.phoneNumber;
   const promptDigit = state?.promptDigit;
+  const tapSuccess = new URLSearchParams(location.search).get('success');
+  const tapReason = new URLSearchParams(location.search).get('reason');
 
   const [code, setCode] = useState('');
   const [canResend, setCanResend] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [confirmed, setConfirmed] = useState(false);
+  const [confirmed, setConfirmed] = useState(tapSuccess === 'true');
   const [verifyError, setVerifyError] = useState<VerifyError | null>(null);
 
   const isPromptMode = mode === 'GOOGLE_PROMPT';
   const isFatal = verifyError?.severity === 'fatal';
   const handleExpire = useCallback(() => setCanResend(true), []);
+
+  useEffect(() => {
+    if (tapSuccess === 'true') {
+      setConfirmed(true);
+      return;
+    }
+
+    if (tapSuccess === 'false') {
+      setVerifyError(parseVerifyError(tapReason ?? 'UNKNOWN'));
+    }
+  }, [tapReason, tapSuccess]);
 
   useEffect(() => {
     if (!isPromptMode || !challengeId || !apiKey || confirmed) return;
@@ -262,7 +273,7 @@ export default function OtpVerificationPage() {
           setVerifyError(parseVerifyError(data.status));
         }
       } catch {
-        // Best-effort polling only; the demo button still works.
+        setVerifyError({ message: 'Impossible de recuperer le statut du challenge.', severity: 'error' });
       }
     }, 2000);
 
@@ -273,7 +284,7 @@ export default function OtpVerificationPage() {
     setCanResend(false);
     setCode('');
     setVerifyError(null);
-    navigate('/send-code', { state: { phoneNumber } });
+    navigate('/send-code', { state: { mode, phoneNumber } });
   };
 
   const verifyCode = async (submittedCode: string) => {
@@ -317,14 +328,6 @@ export default function OtpVerificationPage() {
     await verifyCode(code);
   };
 
-  const handlePromptPress = async () => {
-    if (promptDigit === undefined) {
-      setVerifyError({ message: 'Chiffre de validation introuvable.', severity: 'fatal' });
-      return;
-    }
-    await verifyCode(String(promptDigit));
-  };
-
   return (
     <>
       <style>{CSS}</style>
@@ -361,22 +364,16 @@ export default function OtpVerificationPage() {
                     <strong className="prompt-card__digit">{promptDigit ?? '-'}</strong>
                     <p>
                       Sur le message RCS recu, choisissez le bouton portant ce
-                      chiffre. Le bouton ci-dessous simule cet appui pour la demo.
+                      chiffre. Cette page passera automatiquement en succes quand
+                      le back recevra le tap.
                     </p>
+                    <div className="prompt-card__status" aria-live="polite">
+                      <span className="spinner spinner--dark" aria-hidden="true" />
+                      En attente de validation sur le telephone
+                    </div>
                   </div>
                 ) : (
-                  <>
-                    <OtpInput onChange={setCode} />
-                    {debugCode ? (
-                      <div className="demo-code">
-                        <span>Mode demo sans provider SMSMode</span>
-                        <strong>Code recu : {debugCode}</strong>
-                        <button type="button" onClick={() => verifyCode(debugCode)}>
-                          Utiliser ce code
-                        </button>
-                      </div>
-                    ) : null}
-                  </>
+                  <OtpInput onChange={setCode} />
                 )}
 
                 {verifyError && <ErrorBanner verifyError={verifyError} />}
@@ -393,23 +390,23 @@ export default function OtpVerificationPage() {
                   {!canResend && <CountdownTimer onExpire={handleExpire} />}
                 </p>
 
-                <button
-                  className={`cta ${isSubmitting ? 'cta--loading' : ''}`}
-                  onClick={isPromptMode ? handlePromptPress : handleSubmit}
-                  disabled={isSubmitting || isFatal}
-                  aria-busy={isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <span className="cta__spinner-row">
-                      <span className="spinner" aria-hidden="true" />
-                      Verification...
-                    </span>
-                  ) : isPromptMode ? (
-                    `J'ai appuye sur ${promptDigit ?? '-'}`
-                  ) : (
-                    'Confirmer le paiement'
-                  )}
-                </button>
+                {!isPromptMode ? (
+                  <button
+                    className={`cta ${isSubmitting ? 'cta--loading' : ''}`}
+                    onClick={handleSubmit}
+                    disabled={isSubmitting || isFatal}
+                    aria-busy={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <span className="cta__spinner-row">
+                        <span className="spinner" aria-hidden="true" />
+                        Verification...
+                      </span>
+                    ) : (
+                      'Confirmer le paiement'
+                    )}
+                  </button>
+                ) : null}
 
                 <SecurityBadge />
               </div>
@@ -600,39 +597,14 @@ const CSS = `
     font-size: 14px;
     line-height: 20px;
   }
-
-  .demo-code {
-    margin: 0 auto var(--space-lg);
-    padding: 14px;
-    border: 1px solid var(--outline-variant);
-    border-radius: 8px;
-    display: grid;
+  .prompt-card__status {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     gap: 8px;
-    text-align: center;
-    background: var(--surface-low);
-  }
-  .demo-code span {
-    color: var(--on-surface-variant);
-    font-size: 11px;
-    font-weight: 600;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-  }
-  .demo-code strong {
-    font-family: var(--font-display);
-    font-size: 24px;
     color: var(--primary);
-  }
-  .demo-code button {
-    justify-self: center;
-    background: transparent;
-    border: none;
-    color: var(--primary);
-    cursor: pointer;
     font-size: 13px;
     font-weight: 600;
-    text-decoration: underline;
-    text-underline-offset: 3px;
   }
 
   .error-banner {
@@ -692,6 +664,10 @@ const CSS = `
     border-top-color: #fff;
     border-radius: 50%;
     animation: spin 0.7s linear infinite;
+  }
+  .spinner--dark {
+    border-color: rgba(0,0,0,0.18);
+    border-top-color: var(--primary);
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
