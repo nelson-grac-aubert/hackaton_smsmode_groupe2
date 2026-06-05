@@ -9,7 +9,9 @@ export class VerifyTapQueryDto {
   @IsUUID(4)
   token: string;
 
-  @ApiPropertyOptional({ description: 'ID de transaction à bloquer si decoy tapé' })
+  @ApiPropertyOptional({
+    description: 'ID de transaction à bloquer si decoy tapé',
+  })
   @IsOptional()
   @IsUUID()
   decoy?: string;

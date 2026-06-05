@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { getApps, deleteApp } from '../lib/storage'
-import { Card, Badge, Btn, Alert } from '../components/ui'
+import { Card, Badge, Btn } from '../components/ui'
 
 interface AppListProps {
   onTest: (appId: string) => void

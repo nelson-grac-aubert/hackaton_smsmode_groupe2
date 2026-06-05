@@ -43,11 +43,11 @@ La documentation Swagger est accessible sur `http://localhost:3000/api/doc`.
 
 Les migrations Prisma et le seed de données sont appliqués automatiquement au démarrage via le `docker-entrypoint.sh`.
 
-Une application de démonstration **L'Élégance** est créée automatiquement avec des transactions d'exemple. Elle est immédiatement visible dans le dashboard sans configuration supplémentaire.
+Une application de démonstration **Atelier** est créée automatiquement avec ~650 transactions sur 30 jours. Elle est immédiatement visible dans le dashboard sans configuration supplémentaire.
 
 | Champ | Valeur |
 |---|---|
-| Nom | L'Élégance |
+| Nom | Atelier |
 | Clé API | `demo-sk-elegance-2024` |
 | Mode | CLASSIC |
 
@@ -55,17 +55,50 @@ Une application de démonstration **L'Élégance** est créée automatiquement a
 
 ---
 
-## 3. ngrok — exposer le backend pour les webhooks smsmode
+## 3. Tunnels — exposer le backend et le site démo
 
-Suivre la doc smsmode si ngrok non installé. Dans un terminal dédié, à chaque session de travail :
+Deux tunnels sont nécessaires pour tester le flux complet depuis un téléphone :
+
+### Backend (ngrok — domaine réservé smsmode)
+
+Dans un terminal dédié, à chaque session de travail :
 
 ```bash
 ngrok http --url=smsmode-hack-team-2.ngrok.dev 3000
 ```
 
-Remplacer `3000` par le port configuré dans `.env` (`NESTJS_PORT`) si différent.
+Remplacer l'URL et le port par les valeurs de votre équipe. L'URL doit correspondre à `PUBLIC_URL` dans `.env`.
 
-L'interface de debug ngrok est accessible sur `http://localhost:4040/inspect/http` — elle permet de visualiser les webhooks reçus et de les rejouer sans renvoyer de message.
+L'interface de debug ngrok est accessible sur `http://localhost:4040/inspect/http` — elle permet de visualiser les webhooks reçus et de les rejouer.
+
+### Site démo (Cloudflare Tunnel — accès mobile)
+
+Le site démo tourne sur le port 3030. Pour y accéder depuis un téléphone sans compte Cloudflare :
+
+```bash
+cloudflared tunnel --url http://localhost:3030
+```
+
+Cloudflare affiche une URL publique temporaire, par exemple :
+```
+https://followed-step-due-compounds.trycloudflare.com
+```
+
+> Cette URL change à chaque redémarrage du tunnel. Mettre à jour `verifyRedirectUrl` dans la config de l'app (dashboard → Sécurité) après chaque redémarrage.
+
+Une fois le tunnel démo actif, mettre à jour le champ **URL de redirection après vérification** de l'app Atelier :
+
+```
+https://<url-cloudflare>.trycloudflare.com/verification.html
+```
+
+Depuis le téléphone, ouvrir directement :
+
+```
+https://<url-cloudflare>.trycloudflare.com/paiement.html
+```
+
+> Le compte ngrok Pay-as-you-go ne permet qu'un seul domaine réservé — d'où l'utilisation de Cloudflare pour le second tunnel.
 
 ---
 
@@ -119,7 +152,7 @@ Ce service est configuré avec `profiles: [migrate]` — il ne démarre pas avec
 
 ## 5. Données de démonstration (seed)
 
-Au premier démarrage, une application **L'Élégance** est automatiquement créée en base avec 15 transactions réparties sur 7 jours (VERIFIED, PENDING, EXPIRED, BLOCKED, REPORTED).
+Au premier démarrage, une application **Atelier** est automatiquement créée en base avec ~650 transactions réparties sur 30 jours (VERIFIED, EXPIRED, BLOCKED, PENDING, REPORTED).
 
 Le dashboard frontend détecte un `localStorage` vide et charge cette app automatiquement — aucune action requise.
 

@@ -5,12 +5,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { ConfigService } from '@nestjs/config';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
-import {
-  EnvironmentVariables,
-  ServerConfig,
-} from '../_utils/configs/env.config';
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpStatus } from '../generated/prisma/enums';
 
