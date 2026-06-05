@@ -81,11 +81,30 @@ export class OtpSmsModeService {
   // }
 
     async generateOtp(dto: CreateOtpCodeDto) {
+
+      //call Prisma
+    const appConfig = await this.prisma.otpApp.findUnique({
+      where: { id: dto.appId },
+    });
+
+    if (!appConfig) {
+      throw new BadRequestException("Configuration App introuvable.");
+    }
+
+
+
     const secret = this.otp.generateSecret();
     const token = await this.otp.generate({ secret, counter: 0 });
 
       // TODO HASH
 
+
+
+
+      const ttlMinutes = Math.floor(appConfig.ttlSeconds / 60);
+      const customDescription = appConfig.messageTemplate
+      .replace('{{code}}', token)
+      .replace('{{ttl}}', ttlMinutes.toString());
 
     let message: RcsMessage;
     try {
@@ -96,22 +115,22 @@ export class OtpSmsModeService {
           orientation: 'HORIZONTAL',
           content : 
           {
-            title: `Votre code : ${token}`,
-            description: 'Cliquez sur le lien pour valider instantanément votre connexion.',
+            title: appConfig.cardTitle, // comes from db 
+            description: customDescription, // comes from db
             media: 
             {
-              fileUrl: 'https://www.dummyimage.com/600x400/000/fff', //has to be an URL can be bypassed through ngrok 
+              fileUrl: appConfig.logoUrl || 'https://www.dummyimage.com/600x400/000/fff', //has to be an URL can be bypassed through ngrok comes from db
               height:'MEDIUM'
             },
-            suggestions: [
+            suggestions: appConfig.oneTapEnabled ? [
               {
                 //one tap link
                 type: 'OPEN_URL', 
                 text: 'Valider mon code', 
                 postbackData: 'clic_validation_url', 
-                url: 'https://www.google.com/' //placeholder
+                url: '${appConfig.verifyRedirectUrl}?code=${token}' //placeholder
               }
-            ]
+            ] : []
           }
         }
       });
@@ -135,7 +154,7 @@ export class OtpSmsModeService {
 
     this.store.set(dto.phoneNumber, {
       secret,
-      expiresAt: Date.now() + this.ttlMs,
+      expiresAt: Date.now() + (appConfig.ttlSeconds * 1000),
       attempts: 0,
     });
 
