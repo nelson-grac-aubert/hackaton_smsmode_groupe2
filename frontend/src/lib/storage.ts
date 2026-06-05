@@ -28,3 +28,15 @@ export function deleteApp(id: string): void {
   const apps = getApps().filter((a) => a.id !== id)
   localStorage.setItem(KEY, JSON.stringify(apps))
 }
+
+export function initSeedApp(): void {
+  if (getApps().length === 0) {
+    saveApp({
+      id: 'demo-app-elegance-2024',
+      name: 'Atelier',
+      apiKey: 'demo-sk-elegance-2024',
+      otpMode: 'CLASSIC',
+      createdAt: new Date().toISOString(),
+    })
+  }
+}

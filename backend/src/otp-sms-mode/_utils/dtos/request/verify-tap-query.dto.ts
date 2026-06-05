@@ -1,5 +1,5 @@
-import { ApiProperty } from '@nestjs/swagger';
-import { IsUUID } from 'class-validator';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsOptional, IsUUID } from 'class-validator';
 
 export class VerifyTapQueryDto {
   @ApiProperty({
@@ -8,4 +8,9 @@ export class VerifyTapQueryDto {
   })
   @IsUUID(4)
   token: string;
+
+  @ApiPropertyOptional({ description: 'ID de transaction à bloquer si decoy tapé' })
+  @IsOptional()
+  @IsUUID()
+  decoy?: string;
 }

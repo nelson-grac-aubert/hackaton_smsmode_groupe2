@@ -34,14 +34,7 @@ export class OtpSecurityService {
   private readonly lastSentAt = new Map<string, number>();
   private readonly resendCount = new Map<string, number>();
 
-  private readonly smsModeApiKey: string;
-  constructor(
-    private readonly configService: ConfigService<EnvironmentVariables, true>,
-    private readonly prisma: PrismaService,
-  ) {
-    const serverConfig = this.configService.get<ServerConfig>('SERVER');
-    this.smsModeApiKey = serverConfig.OTP_API_KEY;
-  }
+  constructor(private readonly prisma: PrismaService) {}
 
   checkAndRecordPhoneRate(phoneHash: string, maxPerHour: number) {
     const now = Date.now();
@@ -100,11 +93,6 @@ export class OtpSecurityService {
     const key = `${appId}:${phoneHash}`;
     this.lastSentAt.set(key, Date.now());
     this.resendCount.set(key, (this.resendCount.get(key) ?? 0) + 1);
-  }
-
-  resetResendCount(appId: string, phoneHash: string): void {
-    const key = `${appId}:${phoneHash}`;
-    this.resendCount.delete(key);
   }
 
   validateCountry(phoneNumber: string, allowedCountries: string[]): void {

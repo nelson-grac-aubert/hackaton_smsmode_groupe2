@@ -36,6 +36,7 @@ import { CreateOtpCodeDto } from './_utils/dtos/request/create-otp-code.dto';
 import { OtpMode, OtpStatus } from '../generated/prisma/enums';
 import { VerifyOtpCodeDto } from './_utils/dtos/request/verify-otp-code.dto';
 import { CreateOtpAppDto } from './_utils/dtos/request/create-otp-app.dto';
+import { UpdateAppConfigDto } from './_utils/dtos/request/update-app-config.dto';
 import { OtpApp } from '../generated/prisma/client';
 
 @Injectable()
@@ -164,23 +165,26 @@ export class OtpSmsModeService {
     const promptDigit = randomInt(10);
     const codeHash = await bcrypt.hash(String(promptDigit), 10);
     const tapToken = randomUUID();
+    const txnId = randomUUID();
 
     const [decoy1, decoy2] = this.buildDecoys(promptDigit);
 
     const allChoices = this.shuffleArray([
-      { digit: promptDigit, token: tapToken },
-      { digit: decoy1, token: randomUUID() },
-      { digit: decoy2, token: randomUUID() },
+      { digit: promptDigit, token: tapToken, correct: true },
+      { digit: decoy1, token: randomUUID(), correct: false },
+      { digit: decoy2, token: randomUUID(), correct: false },
     ]);
 
     const resolvedLogoUrl = await this.resolveLogoUrl(app.logoUrl);
 
     const digitSuggestions: RcsSuggestion[] = allChoices.map(
-      ({ digit, token }) => ({
+      ({ digit, token, correct }) => ({
         type: 'OPEN_URL',
         text: String(digit),
         postbackData: `prompt:${token}`,
-        url: `${this.publicUrl}/api/v1/otp/tap?token=${token}`,
+        url: correct
+          ? `${this.publicUrl}/api/v1/otp/tap?token=${token}`
+          : `${this.publicUrl}/api/v1/otp/tap?token=${token}&decoy=${txnId}`,
       }),
     );
 
@@ -217,6 +221,7 @@ export class OtpSmsModeService {
 
     const txn = await this.prisma.otpTransaction.create({
       data: {
+        id: txnId,
         appId: app.id,
         phoneHash,
         sessionId: dto.sessionId,
@@ -297,7 +302,22 @@ export class OtpSmsModeService {
     };
   }
 
-  async verifyTap(tapToken: string) {
+  async verifyTap(tapToken: string, decoyTxnId?: string) {
+    if (decoyTxnId) {
+      const txn = await this.prisma.otpTransaction.findUnique({
+        where: { id: decoyTxnId },
+        include: { app: true },
+      });
+      if (txn?.status === OtpStatus.PENDING) {
+        await this.prisma.otpTransaction.update({
+          where: { id: decoyTxnId },
+          data: { status: OtpStatus.BLOCKED },
+        });
+      }
+      const base = txn?.app?.verifyRedirectUrl ?? `${this.publicUrl}/tap-error`;
+      return { redirectUrl: `${base}?success=false&reason=WRONG_DIGIT` };
+    }
+
     const txn = await this.prisma.otpTransaction.findUnique({
       where: { tapToken },
       include: { app: true },
@@ -360,6 +380,42 @@ export class OtpSmsModeService {
 
     this.logger.log(`App OTP créée — id=${app.id} name=${app.name}`);
     return { id: app.id, name: app.name, apiKey };
+  }
+
+  getAppConfig(app: OtpApp) {
+    return {
+      id: app.id,
+      ttlSeconds: app.ttlSeconds,
+      codeLength: app.codeLength,
+      maxAttempts: app.maxAttempts,
+      resendCooldown: app.resendCooldown,
+      oneTapEnabled: app.oneTapEnabled,
+      allowedCountries: app.allowedCountries,
+      rateLimitPhone: app.rateLimitPhone,
+      rateLimitIp: app.rateLimitIp,
+      reportEnabled: app.reportEnabled,
+    };
+  }
+
+  async updateAppConfig(app: OtpApp, dto: UpdateAppConfigDto) {
+    const updated = await this.prisma.otpApp.update({
+      where: { id: app.id },
+      data: dto,
+    });
+
+    this.logger.log(`Config mise à jour — id=${app.id}`);
+    return {
+      id: updated.id,
+      ttlSeconds: updated.ttlSeconds,
+      codeLength: updated.codeLength,
+      maxAttempts: updated.maxAttempts,
+      resendCooldown: updated.resendCooldown,
+      oneTapEnabled: updated.oneTapEnabled,
+      allowedCountries: updated.allowedCountries,
+      rateLimitPhone: updated.rateLimitPhone,
+      rateLimitIp: updated.rateLimitIp,
+      reportEnabled: updated.reportEnabled,
+    };
   }
 
   private hmacPhone(phone: string): string {

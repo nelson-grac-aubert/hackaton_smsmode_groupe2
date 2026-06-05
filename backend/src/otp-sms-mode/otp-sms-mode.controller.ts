@@ -3,6 +3,7 @@ import {
   Controller,
   Get,
   Param,
+  Patch,
   Post,
   Query,
   Redirect,
@@ -19,6 +20,7 @@ import { OtpSmsModeService } from './otp-sms-mode.service';
 import { CreateOtpCodeDto } from './_utils/dtos/request/create-otp-code.dto';
 import { VerifyOtpCodeDto } from './_utils/dtos/request/verify-otp-code.dto';
 import { CreateOtpAppDto } from './_utils/dtos/request/create-otp-app.dto';
+import { UpdateAppConfigDto } from './_utils/dtos/request/update-app-config.dto';
 import { VerifyTapQueryDto } from './_utils/dtos/request/verify-tap-query.dto';
 import { CurrentApp } from './_utils/decorator/current-app.decorator';
 import { ApiKeyGuard, type OtpRequest } from './_utils/guards/api-key.guard';
@@ -57,21 +59,18 @@ export class OtpSmsModeController {
 
   @ApiOperation({
     summary: "Valide l'OTP en 1 tap depuis la RCS Card (mobile → redirect)",
-    description:
-      'Le mobile ouvre cette URL depuis le bouton "Valider en 1 tap". ' +
-      'Si le token est valide, redirige vers verifyRedirectUrl?success=true&sessionId=... ' +
-      "En cas d'erreur, redirige avec success=false&reason=...",
   })
   @Get('tap')
   @Redirect()
   async verifyTap(@Query() query: VerifyTapQueryDto) {
-    const { redirectUrl } = await this.otpSmsModeService.verifyTap(query.token);
+    const { redirectUrl } = await this.otpSmsModeService.verifyTap(
+      query.token,
+      query.decoy,
+    );
     return { url: redirectUrl, statusCode: 302 };
   }
 
-  @ApiOperation({
-    summary: "Retourne le statut actuel d'un challenge (polling depuis le PC)",
-  })
+  @ApiOperation({ summary: "Retourne le statut actuel d'un challenge" })
   @ApiSecurity('ApiKey')
   @UseGuards(ApiKeyGuard)
   @Get('status/:challengeId')
@@ -87,5 +86,21 @@ export class OtpSmsModeController {
   @Post('apps')
   createApp(@Body() dto: CreateOtpAppDto) {
     return this.otpSmsModeService.createApp(dto);
+  }
+
+  @ApiOperation({ summary: "Retourne la configuration de sécurité de l'app" })
+  @ApiSecurity('ApiKey')
+  @UseGuards(ApiKeyGuard)
+  @Get('apps/config')
+  getConfig(@CurrentApp() app: OtpApp) {
+    return this.otpSmsModeService.getAppConfig(app);
+  }
+
+  @ApiOperation({ summary: "Met à jour la configuration de sécurité de l'app" })
+  @ApiSecurity('ApiKey')
+  @UseGuards(ApiKeyGuard)
+  @Patch('apps/config')
+  updateConfig(@Body() dto: UpdateAppConfigDto, @CurrentApp() app: OtpApp) {
+    return this.otpSmsModeService.updateAppConfig(app, dto);
   }
 }

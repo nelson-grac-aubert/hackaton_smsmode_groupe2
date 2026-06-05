@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>L'Élégance | Vérification Sécurisée</title>
+<title>Atelier | Vérification Sécurisée</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=snap" rel="stylesheet"/>
@@ -94,7 +94,7 @@
     </a>
     <h1 class="font-headline-sm text-headline-sm text-primary">Vérification</h1>
   </div>
-  <div class="font-display-lg text-display-lg text-primary scale-50 md:scale-75 origin-right">L'Élégance</div>
+  <img src="/logo.svg" alt="Atelier" style="height:32px;"/>
 </header>
 
 <main class="flex-grow pt-24 pb-stack-xl px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
@@ -277,6 +277,18 @@
   // ── Init ─────────────────────────────────────────────────────────────────────
 
   function init() {
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('success')) {
+      if (params.get('success') === 'true') {
+        document.getElementById('intro-text').textContent = 'Paiement validé avec succès.';
+        setTimeout(() => showSuccess(), 300);
+      } else {
+        const reason = params.get('reason') || 'Échec de la vérification.';
+        showErrorOverlay(`Validation échouée : ${reason}`);
+      }
+      return;
+    }
+
     if (!challengeId || !apiKey) {
       document.getElementById('intro-text').textContent = 'Session expirée. Retournez à la page de paiement.';
       showErrorOverlay('Session introuvable. Veuillez recommencer le paiement.');
@@ -464,7 +476,7 @@
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
         body: JSON.stringify({
           phoneNumber: sessionStorage.getItem('otp_raw_phone') || phone,
-          sessionId: 'sess_elegance_resend_' + Date.now()
+          sessionId: 'sess_atelier_resend_' + Date.now()
         })
       });
       if (!res.ok) return;

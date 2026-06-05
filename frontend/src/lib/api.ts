@@ -100,6 +100,32 @@ export interface ReportedItem {
   channel: Channel
 }
 
+export interface AppConfig {
+  ttlSeconds: number
+  codeLength: number
+  maxAttempts: number
+  resendCooldown: number
+  oneTapEnabled: boolean
+  allowedCountries: string[]
+  rateLimitPhone: number
+  rateLimitIp: number
+  reportEnabled: boolean
+}
+
+export interface UpdateAppConfigPayload {
+  ttlSeconds?: number
+  codeLength?: number
+  maxAttempts?: number
+  resendCooldown?: number
+  oneTapEnabled?: boolean
+  allowedCountries?: string[]
+  rateLimitPhone?: number
+  rateLimitIp?: number
+  reportEnabled?: boolean
+}
+
+export type AppConfigResponse = AppConfig & { id: string }
+
 export interface BlockedItem {
   id: string
   sessionId: string
@@ -189,5 +215,13 @@ export const api = {
 
   getFraudAlerts(apiKey: string): Promise<FraudAlertsResponse> {
     return request('GET', '/api/v1/stats/fraud', { apiKey })
+  },
+
+  getConfig(apiKey: string): Promise<AppConfigResponse> {
+    return request('GET', '/api/v1/otp/apps/config', { apiKey })
+  },
+
+  updateConfig(apiKey: string, payload: UpdateAppConfigPayload): Promise<AppConfigResponse> {
+    return request('PATCH', '/api/v1/otp/apps/config', { apiKey, body: payload })
   },
 }

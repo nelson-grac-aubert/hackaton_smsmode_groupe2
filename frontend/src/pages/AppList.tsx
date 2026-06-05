@@ -184,13 +184,6 @@ export function AppList({ onTest, onCreate }: AppListProps) {
         ))}
       </div>
 
-      {apps.length > 0 && (
-        <div style={{ marginTop: 16 }}>
-          <Alert variant="info">
-            Les clés API sont stockées localement dans votre navigateur. Ne partagez pas vos clés.
-          </Alert>
-        </div>
-      )}
     </div>
   )
 }

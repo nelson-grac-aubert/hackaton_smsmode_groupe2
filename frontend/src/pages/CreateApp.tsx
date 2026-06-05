@@ -10,13 +10,13 @@ import {
   Btn,
   Badge,
   Toggle,
-  TagInput,
   CopyRow,
   Alert,
   SectionTitle,
   NumberInput,
 } from '../components/ui'
 import { RcsPreview } from '../components/RcsPreview'
+import { CountryPicker } from '../components/CountryPicker'
 
 interface FormState {
   name: string
@@ -357,13 +357,8 @@ export function CreateApp({ onTest }: CreateAppProps) {
                 <NumberInput value={form.rateLimitIp} onChange={(v) => set('rateLimitIp', v)} min={1} />
               </Field>
             </div>
-            <Field label="Pays autorisés" hint="Codes ISO 3166-1 alpha-2 — Entrée pour ajouter, vide = tous pays">
-              <TagInput
-                tags={form.allowedCountries}
-                onChange={(tags) => set('allowedCountries', tags)}
-                placeholder="FR, BE, DE..."
-                validate={(tag) => /^[A-Z]{2}$/.test(tag)}
-              />
+            <Field label="Pays autorisés" hint="Vide = tous les pays autorisés">
+              <CountryPicker value={form.allowedCountries} onChange={(v) => set('allowedCountries', v)} />
             </Field>
             <div style={{ display: 'flex', gap: 24 }}>
               <Toggle

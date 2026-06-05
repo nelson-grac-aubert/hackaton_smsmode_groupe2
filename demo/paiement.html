@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8"/>
 <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-<title>L'Élégance — Paiement Sécurisé</title>
+<title>Atelier — Paiement Sécurisé</title>
 <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
 <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
@@ -85,7 +85,7 @@
     <div class="flex items-center text-primary">
       <span class="material-symbols-outlined text-headline-sm" style="font-variation-settings: 'FILL' 1;">lock</span>
     </div>
-    <div class="font-headline-sm text-headline-sm tracking-widest text-primary">ATELIER</div>
+    <img src="/logo.svg" alt="Atelier" style="height:36px;"/>
     <button class="flex items-center text-on-surface-variant hover:opacity-70 transition-opacity" onclick="toggleDemoPanel()" title="Configuration démo">
       <span class="material-symbols-outlined text-headline-sm">settings</span>
     </button>
@@ -335,7 +335,7 @@
       const res = await fetch('/api/v1/otp/generate', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
-        body: JSON.stringify({ phoneNumber: phone, sessionId: 'sess_elegance_' + Date.now() })
+        body: JSON.stringify({ phoneNumber: phone, sessionId: 'sess_atelier_' + Date.now() })
       });
 
       if (!res.ok) {

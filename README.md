@@ -41,7 +41,17 @@ docker compose up --build
 Le backend démarre sur `http://localhost:3000`.  
 La documentation Swagger est accessible sur `http://localhost:3000/api/doc`.
 
-Les migrations Prisma sont appliquées automatiquement au démarrage via le `docker-entrypoint.sh`.
+Les migrations Prisma et le seed de données sont appliqués automatiquement au démarrage via le `docker-entrypoint.sh`.
+
+Une application de démonstration **L'Élégance** est créée automatiquement avec des transactions d'exemple. Elle est immédiatement visible dans le dashboard sans configuration supplémentaire.
+
+| Champ | Valeur |
+|---|---|
+| Nom | L'Élégance |
+| Clé API | `demo-sk-elegance-2024` |
+| Mode | CLASSIC |
+
+> Le seed est idempotent — relancer `docker compose up` ne duplique pas les données.
 
 ---
 
@@ -107,7 +117,29 @@ Ce service est configuré avec `profiles: [migrate]` — il ne démarre pas avec
 
 ---
 
-## 5. Créer une app OTP (première utilisation)
+## 5. Données de démonstration (seed)
+
+Au premier démarrage, une application **L'Élégance** est automatiquement créée en base avec 15 transactions réparties sur 7 jours (VERIFIED, PENDING, EXPIRED, BLOCKED, REPORTED).
+
+Le dashboard frontend détecte un `localStorage` vide et charge cette app automatiquement — aucune action requise.
+
+Pour relancer le seed manuellement (hors Docker) :
+
+```bash
+cd backend
+DATABASE_URL="postgresql://user:pass@localhost:5432/dbname" pnpm exec prisma db seed
+```
+
+Pour réinitialiser complètement les données :
+
+```bash
+docker compose down -v
+docker compose up --build
+```
+
+---
+
+## 6. Créer une app OTP supplémentaire
 
 ```bash
 curl -X POST http://localhost:3000/api/v1/otp/apps \
@@ -133,7 +165,7 @@ Utiliser cette clé dans le header `x-api-key` pour toutes les requêtes suivant
 
 ---
 
-## 6. Modes OTP
+## 7. Modes OTP
 
 L'API supporte deux modes de validation, configurables par app via le champ `otpMode` à la création.
 
@@ -194,6 +226,11 @@ POST /otp/generate  →  retourne { challengeId, promptDigit: 7 }
 ---
 
 ## 9. Commandes utiles
+
+```bash
+# Lancer le seed manuellement (depuis le container)
+docker compose exec backend npx prisma db seed
+```
 
 ```bash
 # Démarrer le projet
