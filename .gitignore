@@ -1,17 +1,30 @@
-# Build
-/dist
-/build
-*.tsbuildinfo
+# ── Dependencies ────────────────────────────────────────────────────────────────
+**/node_modules
 
-# Dependencies
-/node_modules
+# ── Build outputs ───────────────────────────────────────────────────────────────
+**/dist
+**/build
+**/*.tsbuildinfo
 
-# Environment — ne jamais committer les secrets
+# ── Environment — ne jamais committer les secrets ────────────────────────────────
 .env
 .env.*
-!.env.example
+**/.env
+**/.env.*
+!**/.env.example
 
-# IDE
+# ── Prisma — types générés reconstruits au build ─────────────────────────────────
+backend/src/generated/
+
+# ── Tests ────────────────────────────────────────────────────────────────────────
+**/coverage
+.nyc_output
+
+# ── Logs ─────────────────────────────────────────────────────────────────────────
+*.log
+npm-debug.log*
+
+# ── IDE ───────────────────────────────────────────────────────────────────────────
 .idea
 .vscode
 .cursor
@@ -20,17 +33,6 @@
 *.swo
 *~
 
-# Tests
-/coverage
-.nyc_output
-
-# Logs
-*.log
-npm-debug.log*
-
-# OS
+# ── OS ────────────────────────────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db
-
-# Prisma — les types générés sont reconstruits au build
-src/generated/

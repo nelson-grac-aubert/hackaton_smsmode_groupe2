@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>L'Élégance — Paiement Sécurisé</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "on-primary": "#ffffff", "surface-container-low": "#f5f3f3",
+          "on-secondary-fixed-variant": "#574500", "on-tertiary-fixed": "#1a1c1c",
+          "surface": "#fbf9f9", "inverse-primary": "#c8c6c5",
+          "secondary": "#735c00", "tertiary-fixed": "#e2e2e2",
+          "background": "#fbf9f9", "surface-container-highest": "#e3e2e2",
+          "secondary-fixed-dim": "#e9c349", "on-surface": "#1b1c1c",
+          "on-tertiary": "#ffffff", "surface-container": "#efeded",
+          "surface-container-high": "#e9e8e7", "outline": "#747878",
+          "tertiary-container": "#1a1c1c", "on-background": "#1b1c1c",
+          "on-primary-fixed-variant": "#474746", "error": "#ba1a1a",
+          "primary-fixed-dim": "#c8c6c5", "on-secondary-fixed": "#241a00",
+          "on-primary-fixed": "#1c1b1b", "outline-variant": "#c4c7c7",
+          "secondary-container": "#fed65b", "primary-container": "#1c1b1b",
+          "on-surface-variant": "#444748", "secondary-fixed": "#ffe088",
+          "primary-fixed": "#e5e2e1", "inverse-surface": "#303031",
+          "on-error": "#ffffff", "on-secondary-container": "#745c00",
+          "error-container": "#ffdad6", "on-primary-container": "#858383",
+          "tertiary": "#000000", "on-error-container": "#93000a",
+          "primary": "#000000", "tertiary-fixed-dim": "#c6c6c7",
+          "surface-dim": "#dbdad9", "on-secondary": "#ffffff",
+          "surface-bright": "#fbf9f9", "surface-tint": "#5f5e5e",
+          "on-tertiary-container": "#838484", "surface-variant": "#e3e2e2",
+          "on-tertiary-fixed-variant": "#454747",
+          "surface-container-lowest": "#ffffff", "inverse-on-surface": "#f2f0f0"
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        spacing: {
+          "margin-desktop": "64px", "gutter": "24px", "margin-mobile": "20px",
+          "stack-xl": "64px", "stack-sm": "8px", "stack-lg": "32px",
+          "container-max": "1280px", "stack-md": "16px", "unit": "4px"
+        },
+        fontFamily: {
+          "headline-sm": ["Playfair Display"], "body-lg": ["Inter"],
+          "headline-md": ["Playfair Display"], "button": ["Inter"],
+          "display-lg-mobile": ["Playfair Display"], "body-md": ["Inter"],
+          "label-caps": ["Inter"], "body-sm": ["Inter"], "display-lg": ["Playfair Display"]
+        },
+        fontSize: {
+          "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "500"}],
+          "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+          "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "500"}],
+          "button": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+          "display-lg-mobile": ["36px", {"lineHeight": "42px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+          "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+          "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; vertical-align: middle; }
+  body { -webkit-font-smoothing: antialiased; min-height: max(884px, 100dvh); }
+  .order-summary-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
+  .order-summary-active .order-summary-content { max-height: 300px; }
+  .order-summary-active .expand-icon { transform: rotate(180deg); }
+  input:focus { outline: none; border-color: #1b1c1c !important; }
+  #demo-panel { transition: transform 0.3s ease, opacity 0.3s ease; }
+  #demo-panel.hidden-panel { transform: translateY(10px); opacity: 0; pointer-events: none; }
+  .btn-loading { opacity: 0.7; pointer-events: none; }
+</style>
+</head>
+<body class="bg-background text-on-background font-body-md selection:bg-secondary-container">
+
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 bg-background border-b border-outline-variant transition-all duration-300" id="topbar">
+  <div class="flex justify-between items-center px-margin-mobile md:px-margin-desktop h-16 w-full max-w-container-max mx-auto">
+    <div class="flex items-center text-primary">
+      <span class="material-symbols-outlined text-headline-sm" style="font-variation-settings: 'FILL' 1;">lock</span>
+    </div>
+    <div class="font-headline-sm text-headline-sm tracking-widest text-primary">ATELIER</div>
+    <button class="flex items-center text-on-surface-variant hover:opacity-70 transition-opacity" onclick="toggleDemoPanel()" title="Configuration démo">
+      <span class="material-symbols-outlined text-headline-sm">settings</span>
+    </button>
+  </div>
+</header>
+
+<!-- Demo Config Panel -->
+<div class="fixed top-16 right-0 z-50 w-80 p-5 bg-white border border-outline-variant shadow-xl hidden-panel" id="demo-panel">
+  <div class="flex items-center justify-between mb-4">
+    <span class="font-label-caps text-label-caps text-primary uppercase tracking-widest">⚙ Config Démo OTP</span>
+    <button onclick="toggleDemoPanel()" class="text-on-surface-variant hover:opacity-70">
+      <span class="material-symbols-outlined text-[18px]">close</span>
+    </button>
+  </div>
+  <div class="space-y-3">
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase tracking-widest">Clé API</label>
+      <input id="cfg-apikey" type="password" placeholder="sk_..." class="w-full bg-surface-container-low border border-outline-variant px-3 py-2 text-sm font-mono"/>
+    </div>
+    <div>
+      <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase tracking-widest">Numéro de test</label>
+      <input id="cfg-phone" type="tel" placeholder="+33600000001" class="w-full bg-surface-container-low border border-outline-variant px-3 py-2 text-sm"/>
+    </div>
+    <button onclick="saveConfig()" class="w-full bg-primary text-on-primary py-2 font-label-caps text-label-caps uppercase tracking-widest mt-2">
+      Enregistrer
+    </button>
+    <p class="text-[11px] text-on-surface-variant leading-relaxed">
+      Créez une app sur le <a href="http://localhost:5173" target="_blank" class="underline">dashboard (port 5173)</a> pour obtenir votre clé API.
+    </p>
+  </div>
+  <div id="cfg-status" class="mt-3 text-[12px] text-center hidden"></div>
+</div>
+
+<main class="pt-24 pb-stack-xl px-margin-mobile max-w-md mx-auto min-h-screen flex flex-col">
+
+  <!-- Stepper -->
+  <nav class="flex justify-between items-center mb-stack-lg relative px-unit">
+    <div class="absolute top-1/2 left-0 w-full h-px bg-outline-variant -z-10"></div>
+    <div class="flex flex-col items-center bg-background px-2">
+      <div class="w-2 h-2 rounded-full bg-primary mb-2"></div>
+      <span class="font-label-caps text-label-caps text-on-surface-variant">Livraison</span>
+    </div>
+    <div class="flex flex-col items-center bg-background px-2">
+      <div class="w-3 h-3 rounded-full bg-primary mb-2 outline outline-offset-4 outline-1 outline-primary"></div>
+      <span class="font-label-caps text-label-caps text-primary">Paiement</span>
+    </div>
+    <div class="flex flex-col items-center bg-background px-2">
+      <div class="w-2 h-2 rounded-full bg-outline-variant mb-2"></div>
+      <span class="font-label-caps text-label-caps text-on-surface-variant opacity-50">Confirmation</span>
+    </div>
+  </nav>
+
+  <!-- Order Summary -->
+  <section class="bg-surface-container-low mb-stack-lg rounded-lg overflow-hidden" id="orderSummary">
+    <button class="w-full flex justify-between items-center p-stack-md" onclick="toggleSummary()">
+      <span class="font-label-caps text-label-caps uppercase tracking-wider text-on-surface-variant">Résumé de la commande</span>
+      <div class="flex items-center gap-2">
+        <span class="font-body-md font-medium">249,00€</span>
+        <span class="material-symbols-outlined expand-icon transition-transform duration-300">expand_more</span>
+      </div>
+    </button>
+    <div class="order-summary-content px-stack-md">
+      <div class="flex items-center gap-stack-md pb-stack-md">
+        <div class="w-16 h-20 bg-surface-container-highest flex-shrink-0">
+          <img alt="Midnight Silk Dress" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuB-O-0xU14n8rcD_uCyQhzk63Sdj_ab_dzbKyjIWz6R24feDSURtLT-SJyboHPEdmjxVHO3P-VBHqM8XNtCK4uJrecJ7D-Q_UI1FWPAxWB3kY-65uyzLRWrC2cbXw2iO1vEUjFHjb71oHohAma5ypcXupRyvmWfXohS-bY638qoK8i8uSVAT8QkydINcQjRiUqxMtmD6iuwNnV-iyLKAWjUH98FEf0B7JjTdahOJl6XU1prX6QOBKd09FYjof_cSz9Ro390df4DUrZM"/>
+        </div>
+        <div class="flex-grow">
+          <h4 class="font-headline-sm text-[16px] leading-tight mb-1">Midnight Silk Dress</h4>
+          <p class="font-label-caps text-label-caps text-on-surface-variant">Taille: FR 38 | Noir Profond</p>
+        </div>
+        <div class="text-right"><span class="font-body-sm font-medium">249,00€</span></div>
+      </div>
+      <div class="border-t border-outline-variant py-stack-sm flex justify-between items-center">
+        <span class="font-body-sm text-on-surface-variant">Livraison</span>
+        <span class="font-body-sm">Offerte</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Payment Form -->
+  <form class="flex-grow flex flex-col gap-stack-lg" id="payment-form" onsubmit="handleSubmit(event)">
+    <h1 class="font-headline-md text-headline-md mb-2">Détails de paiement</h1>
+    <div class="space-y-stack-md">
+
+      <!-- Card Number -->
+      <div class="group">
+        <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase tracking-widest">Numéro de carte</label>
+        <div class="relative">
+          <input class="w-full bg-surface-container-low border border-outline-variant px-4 py-3 font-body-md" placeholder="0000 0000 0000 0000" type="text" id="card-number" maxlength="19"/>
+          <div class="absolute right-4 top-1/2 -translate-y-1/2 opacity-60">
+            <span class="material-symbols-outlined">credit_card</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Expire and CVV -->
+      <div class="flex gap-gutter">
+        <div class="flex-1">
+          <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase tracking-widest">Expiration</label>
+          <input class="w-full bg-surface-container-low border border-outline-variant px-4 py-3 font-body-md" placeholder="MM/YY" type="text" maxlength="5"/>
+        </div>
+        <div class="flex-1">
+          <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase tracking-widest">CVV</label>
+          <input class="w-full bg-surface-container-low border border-outline-variant px-4 py-3 font-body-md" placeholder="***" type="password" maxlength="4"/>
+        </div>
+      </div>
+
+      <!-- Cardholder Name -->
+      <div>
+        <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase tracking-widest">Nom du titulaire</label>
+        <input class="w-full bg-surface-container-low border border-outline-variant px-4 py-3 font-body-md uppercase" placeholder="JEAN DUPONT" type="text"/>
+      </div>
+
+      <!-- Phone number for OTP -->
+      <div class="pt-2 border-t border-outline-variant">
+        <label class="block font-label-caps text-label-caps text-on-surface-variant mb-1 uppercase tracking-widest">
+          Téléphone pour la vérification
+          <span class="text-error ml-1">*</span>
+        </label>
+        <input class="w-full bg-surface-container-low border border-outline-variant px-4 py-3 font-body-md" placeholder="+33600000001" type="tel" id="phone-input"/>
+        <p class="mt-1 font-body-sm text-[12px] text-on-surface-variant">Recevra le code OTP par RCS/SMS</p>
+      </div>
+
+      <!-- Save Card -->
+      <label class="flex items-center gap-3 cursor-pointer">
+        <div class="relative flex items-center">
+          <input class="peer h-5 w-5 appearance-none border border-outline-variant checked:bg-primary rounded-sm" type="checkbox"/>
+          <span class="material-symbols-outlined absolute text-[16px] text-white opacity-0 peer-checked:opacity-100 left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">check</span>
+        </div>
+        <span class="font-body-sm text-on-surface-variant">Enregistrer cette carte pour mes prochains achats</span>
+      </label>
+    </div>
+
+    <!-- Security notice -->
+    <div class="flex gap-3 p-4 bg-surface-container rounded-sm border-l-2 border-primary">
+      <span class="material-symbols-outlined text-primary flex-shrink-0" style="font-variation-settings: 'FILL' 1;">verified_user</span>
+      <p class="font-body-sm text-on-surface-variant leading-relaxed">
+        Pour votre sécurité, un code de vérification sera envoyé sur votre téléphone via <strong>RCS</strong> (ou SMS en fallback) pour confirmer cette transaction.
+      </p>
+    </div>
+
+    <!-- Error -->
+    <div id="error-msg" class="hidden p-4 bg-error-container text-on-error-container font-body-sm rounded-sm border-l-2 border-error"></div>
+
+    <!-- Submit -->
+    <button class="mt-stack-xl w-full bg-primary text-on-primary py-5 font-button text-button uppercase tracking-[0.2em] hover:bg-on-surface-variant transition-all duration-300 active:scale-[0.98]" type="submit" id="submit-btn">
+      <span id="btn-text">Payer 249,00€</span>
+      <span id="btn-loading" class="hidden">Envoi du code en cours…</span>
+    </button>
+  </form>
+</main>
+
+<!-- Footer -->
+<footer class="w-full py-stack-xl bg-surface-container-low border-t border-outline-variant">
+  <div class="flex flex-col items-center gap-gutter px-margin-mobile max-w-container-max mx-auto">
+    <div class="flex gap-stack-lg items-center opacity-40 grayscale mb-2">
+      <span class="material-symbols-outlined text-headline-sm">shield</span>
+      <span class="material-symbols-outlined text-headline-sm">lock_reset</span>
+      <span class="material-symbols-outlined text-headline-sm">credit_score</span>
+    </div>
+    <p class="font-label-caps text-label-caps text-on-surface-variant text-center leading-relaxed">
+      © 2024 DIGITAL ATELIER. ALL TRANSACTIONS ARE ENCRYPTED AND SECURE.
+    </p>
+  </div>
+</footer>
+
+<script>
+  // ── Config ──────────────────────────────────────────────────────────────────
+
+  let panelOpen = false;
+
+  function toggleDemoPanel() {
+    panelOpen = !panelOpen;
+    const panel = document.getElementById('demo-panel');
+    panel.classList.toggle('hidden-panel', !panelOpen);
+    if (panelOpen) {
+      const cfg = loadConfig();
+      document.getElementById('cfg-apikey').value = cfg.apiKey || '';
+      document.getElementById('cfg-phone').value = cfg.phone || '';
+    }
+  }
+
+  function loadConfig() {
+    try { return JSON.parse(sessionStorage.getItem('otp_demo_config') || '{}'); }
+    catch { return {}; }
+  }
+
+  function saveConfig() {
+    const apiKey = document.getElementById('cfg-apikey').value.trim();
+    const phone = document.getElementById('cfg-phone').value.trim();
+    sessionStorage.setItem('otp_demo_config', JSON.stringify({ apiKey, phone }));
+    if (phone) document.getElementById('phone-input').value = phone;
+    const st = document.getElementById('cfg-status');
+    st.textContent = '✓ Enregistré';
+    st.className = 'mt-3 text-[12px] text-center text-green-700';
+    st.classList.remove('hidden');
+    setTimeout(() => toggleDemoPanel(), 800);
+  }
+
+  // Pre-fill from config
+  const cfg = loadConfig();
+  if (cfg.phone) document.getElementById('phone-input').value = cfg.phone;
+
+  // ── Formatage carte ──────────────────────────────────────────────────────────
+
+  document.getElementById('card-number').addEventListener('input', function() {
+    let v = this.value.replace(/\D/g, '').slice(0, 16);
+    this.value = v.replace(/(.{4})/g, '$1 ').trim();
+  });
+
+  // ── Commande collapsible ──────────────────────────────────────────────────────
+
+  function toggleSummary() {
+    document.getElementById('orderSummary').classList.toggle('order-summary-active');
+  }
+
+  window.addEventListener('scroll', () => {
+    const header = document.querySelector('header');
+    if (window.scrollY > 20) { header.classList.add('shadow-md'); header.classList.remove('border-b'); }
+    else { header.classList.remove('shadow-md'); header.classList.add('border-b'); }
+  });
+
+  // ── Soumission et envoi OTP ───────────────────────────────────────────────────
+
+  async function handleSubmit(e) {
+    e.preventDefault();
+    const config = loadConfig();
+    const apiKey = config.apiKey;
+    const phone = document.getElementById('phone-input').value.trim();
+
+    const errEl = document.getElementById('error-msg');
+    errEl.classList.add('hidden');
+
+    if (!apiKey) {
+      showError('Clé API manquante. Cliquez sur ⚙ en haut à droite pour configurer.');
+      return;
+    }
+    if (!phone) {
+      showError('Veuillez saisir un numéro de téléphone pour recevoir le code.');
+      document.getElementById('phone-input').focus();
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/v1/otp/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({ phoneNumber: phone, sessionId: 'sess_elegance_' + Date.now() })
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        const msg = Array.isArray(data.message) ? data.message.join(', ') : (data.message || `Erreur ${res.status}`);
+        throw new Error(msg);
+      }
+
+      const data = await res.json();
+      sessionStorage.setItem('otp_challenge_id', data.challengeId);
+      sessionStorage.setItem('otp_expires_at', data.expiresAt);
+      sessionStorage.setItem('otp_channel', data.channel);
+      sessionStorage.setItem('otp_api_key', apiKey);
+      sessionStorage.setItem('otp_phone_display', phone.slice(-2).padStart(phone.length, '•'));
+      if (data.promptDigit !== undefined) {
+        sessionStorage.setItem('otp_mode', 'GOOGLE_PROMPT');
+        sessionStorage.setItem('otp_prompt_digit', String(data.promptDigit));
+      } else {
+        sessionStorage.setItem('otp_mode', 'CLASSIC');
+        sessionStorage.removeItem('otp_prompt_digit');
+      }
+
+      window.location.href = 'verification.html';
+
+    } catch (err) {
+      setLoading(false);
+      showError(err.message || 'Erreur lors de l\'envoi du code.');
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('error-msg');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function setLoading(on) {
+    const btn = document.getElementById('submit-btn');
+    document.getElementById('btn-text').classList.toggle('hidden', on);
+    document.getElementById('btn-loading').classList.toggle('hidden', !on);
+    btn.classList.toggle('btn-loading', on);
+  }
+</script>
+</body>
+</html>

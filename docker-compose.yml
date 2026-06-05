@@ -1,7 +1,8 @@
 services:
 
+  # ── Backend NestJS ───────────────────────────────────────────────────────────
   backend:
-    build: .
+    build: ./backend
     restart: always
     healthcheck:
       test: [ "CMD-SHELL", "wget -qO- http://localhost:3000/health || exit 1" ]
@@ -9,23 +10,49 @@ services:
       timeout: 5s
       retries: 5
     volumes:
-      - .:/app
+      - ./backend:/app
       - /app/node_modules
     ports:
       - ${NESTJS_PORT}:3000
     env_file:
-      - .env
+      - ./backend/.env
     depends_on:
       postgres:
         condition: service_healthy
     networks:
       - app_network
 
+  # ── Dashboard React (admin) ──────────────────────────────────────────────────
+  frontend:
+    build: ./frontend
+    restart: always
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  # ── Démo boutique L'Élégance ─────────────────────────────────────────────────
+  demo:
+    build: ./demo
+    restart: always
+    ports:
+      - "3030:3030"
+    depends_on:
+      - postgres
+    networks:
+      - app_network
+
+  # ── Migration Prisma (profil optionnel) ──────────────────────────────────────
   migrate:
-    build: .
+    build: ./backend
     command: npx prisma migrate dev --name auto
     env_file:
-      - .env
+      - ./backend/.env
     depends_on:
       postgres:
         condition: service_healthy
@@ -34,6 +61,7 @@ services:
     profiles:
       - migrate
 
+  # ── PostgreSQL ───────────────────────────────────────────────────────────────
   postgres:
     image: postgres:${POSTGRES_TAG}
     user: postgres

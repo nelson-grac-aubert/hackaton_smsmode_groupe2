@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html class="light" lang="fr">
+<head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>L'Élégance | Vérification Sécurisée</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=snap" rel="stylesheet"/>
+<script id="tailwind-config">
+  tailwind.config = {
+    darkMode: "class",
+    theme: {
+      extend: {
+        colors: {
+          "surface-bright": "#fbf9f9", "primary-container": "#1c1b1b",
+          "error-container": "#ffdad6", "on-primary-fixed-variant": "#474746",
+          "tertiary-container": "#1a1c1c", "surface": "#fbf9f9",
+          "on-error": "#ffffff", "inverse-on-surface": "#f2f0f0",
+          "secondary": "#735c00", "on-secondary-fixed-variant": "#574500",
+          "secondary-fixed-dim": "#e9c349", "surface-dim": "#dbdad9",
+          "outline-variant": "#c4c7c7", "inverse-primary": "#c8c6c5",
+          "outline": "#747878", "on-surface": "#1b1c1c",
+          "tertiary-fixed-dim": "#c6c6c7", "surface-container-highest": "#e3e2e2",
+          "on-error-container": "#93000a", "on-secondary-fixed": "#241a00",
+          "on-primary-fixed": "#1c1b1b", "background": "#fbf9f9",
+          "surface-tint": "#5f5e5e", "on-secondary-container": "#745c00",
+          "on-tertiary-fixed": "#1a1c1c", "secondary-container": "#fed65b",
+          "on-tertiary-fixed-variant": "#454747", "primary-fixed": "#e5e2e1",
+          "surface-container": "#efeded", "secondary-fixed": "#ffe088",
+          "on-tertiary": "#ffffff", "inverse-surface": "#303031",
+          "tertiary": "#000000", "surface-container-lowest": "#ffffff",
+          "on-background": "#1b1c1c", "on-secondary": "#ffffff",
+          "tertiary-fixed": "#e2e2e2", "surface-variant": "#e3e2e2",
+          "primary-fixed-dim": "#c8c6c5", "on-tertiary-container": "#838484",
+          "on-primary": "#ffffff", "surface-container-low": "#f5f3f3",
+          "surface-container-high": "#e9e8e7", "on-primary-container": "#858383",
+          "primary": "#000000", "on-surface-variant": "#444748", "error": "#ba1a1a"
+        },
+        borderRadius: { "DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem" },
+        spacing: {
+          "margin-desktop": "64px", "margin-mobile": "20px", "stack-lg": "32px",
+          "gutter": "24px", "container-max": "1280px", "unit": "4px",
+          "stack-xl": "64px", "stack-sm": "8px", "stack-md": "16px"
+        },
+        fontFamily: {
+          "label-caps": ["Inter"], "display-lg": ["Playfair Display"], "button": ["Inter"],
+          "body-sm": ["Inter"], "display-lg-mobile": ["Playfair Display"], "body-md": ["Inter"],
+          "headline-md": ["Playfair Display"], "body-lg": ["Inter"], "headline-sm": ["Playfair Display"]
+        },
+        fontSize: {
+          "label-caps": ["12px", {"lineHeight": "16px", "letterSpacing": "0.1em", "fontWeight": "600"}],
+          "display-lg": ["48px", {"lineHeight": "56px", "letterSpacing": "-0.02em", "fontWeight": "600"}],
+          "button": ["14px", {"lineHeight": "20px", "letterSpacing": "0.05em", "fontWeight": "500"}],
+          "body-sm": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+          "display-lg-mobile": ["36px", {"lineHeight": "42px", "letterSpacing": "-0.01em", "fontWeight": "600"}],
+          "body-md": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+          "headline-md": ["32px", {"lineHeight": "40px", "fontWeight": "500"}],
+          "body-lg": ["18px", {"lineHeight": "28px", "fontWeight": "400"}],
+          "headline-sm": ["24px", {"lineHeight": "32px", "fontWeight": "500"}]
+        }
+      }
+    }
+  }
+</script>
+<style>
+  body { -webkit-font-smoothing: antialiased; min-height: max(884px, 100dvh); }
+  .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+  .otp-input:focus { outline: none; border-color: #000000; background-color: #ffffff; }
+
+  /* Status pulse */
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+  .pulse { animation: pulse 1.5s ease-in-out infinite; }
+
+  /* Success pop */
+  @keyframes pop { 0%{transform:scale(.8);opacity:0} 60%{transform:scale(1.05)} 100%{transform:scale(1);opacity:1} }
+  .pop { animation: pop .5s ease-out forwards; }
+
+  /* Digit glow */
+  @keyframes glow { 0%,100%{box-shadow:0 0 0 rgba(0,0,0,0)} 50%{box-shadow:0 0 24px rgba(0,0,0,.15)} }
+  .digit-glow { animation: glow 2s ease-in-out infinite; }
+
+  #status-badge { transition: all .3s ease; }
+  #classic-section, #prompt-section { display: none; }
+</style>
+</head>
+<body class="bg-surface text-on-surface font-body-md min-h-screen flex flex-col">
+
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full flex items-center justify-between px-margin-mobile md:px-margin-desktop h-16 bg-surface border-b border-outline-variant z-50">
+  <div class="flex items-center gap-4">
+    <a href="paiement.html" class="hover:opacity-80 transition-opacity flex items-center active:scale-95">
+      <span class="material-symbols-outlined text-primary">arrow_back</span>
+    </a>
+    <h1 class="font-headline-sm text-headline-sm text-primary">Vérification</h1>
+  </div>
+  <div class="font-display-lg text-display-lg text-primary scale-50 md:scale-75 origin-right">L'Élégance</div>
+</header>
+
+<main class="flex-grow pt-24 pb-stack-xl px-margin-mobile md:px-margin-desktop max-w-container-max mx-auto w-full">
+
+  <!-- Progress Stepper -->
+  <nav class="flex items-center justify-center mb-stack-xl max-w-md mx-auto">
+    <div class="flex items-center w-full">
+      <div class="flex flex-col items-center flex-1">
+        <span class="font-label-caps text-label-caps text-on-surface-variant mb-2">Paiement</span>
+        <div class="h-[1px] w-full bg-primary"></div>
+      </div>
+      <div class="flex flex-col items-center flex-1">
+        <span class="font-label-caps text-label-caps text-primary mb-2">Vérification</span>
+        <div class="h-[2px] w-full bg-primary"></div>
+      </div>
+      <div class="flex flex-col items-center flex-1 opacity-40">
+        <span class="font-label-caps text-label-caps text-on-surface-variant mb-2">Confirmation</span>
+        <div class="h-[1px] w-full bg-outline-variant"></div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Header text -->
+  <div class="text-center mb-stack-xl">
+    <h2 class="font-headline-md text-headline-md mb-stack-sm">Vérification de sécurité</h2>
+    <p class="font-body-md text-on-surface-variant max-w-lg mx-auto" id="intro-text">
+      Chargement en cours…
+    </p>
+  </div>
+
+  <!-- ── Main card ── -->
+  <div class="max-w-xl mx-auto bg-surface-container-lowest p-stack-xl shadow-sm border border-outline-variant rounded-lg">
+
+    <!-- Status badge (polling) -->
+    <div class="flex justify-center mb-stack-lg" id="status-row">
+      <div id="status-badge" class="inline-flex items-center gap-2 px-4 py-2 rounded-full border font-label-caps text-label-caps uppercase tracking-wide">
+        <span id="status-dot" class="w-2 h-2 rounded-full"></span>
+        <span id="status-text">—</span>
+      </div>
+    </div>
+
+    <!-- ══════ CLASSIC MODE ══════ -->
+    <div id="classic-section">
+      <div class="flex justify-center gap-2 md:gap-4 mb-stack-lg" id="otp-container">
+        <input class="otp-input w-12 h-16 md:w-16 md:h-20 text-center font-headline-sm text-headline-sm border border-outline-variant bg-surface-container-low rounded-DEFAULT" maxlength="1" type="text" autofocus/>
+        <input class="otp-input w-12 h-16 md:w-16 md:h-20 text-center font-headline-sm text-headline-sm border border-outline-variant bg-surface-container-low rounded-DEFAULT" maxlength="1" type="text"/>
+        <input class="otp-input w-12 h-16 md:w-16 md:h-20 text-center font-headline-sm text-headline-sm border border-outline-variant bg-surface-container-low rounded-DEFAULT" maxlength="1" type="text"/>
+        <input class="otp-input w-12 h-16 md:w-16 md:h-20 text-center font-headline-sm text-headline-sm border border-outline-variant bg-surface-container-low rounded-DEFAULT" maxlength="1" type="text"/>
+        <input class="otp-input w-12 h-16 md:w-16 md:h-20 text-center font-headline-sm text-headline-sm border border-outline-variant bg-surface-container-low rounded-DEFAULT" maxlength="1" type="text"/>
+        <input class="otp-input w-12 h-16 md:w-16 md:h-20 text-center font-headline-sm text-headline-sm border border-outline-variant bg-surface-container-low rounded-DEFAULT" maxlength="1" type="text"/>
+      </div>
+
+      <div class="text-center mb-stack-lg">
+        <p class="font-body-sm text-on-surface-variant">
+          Vous n'avez pas reçu le code ?
+          <button id="resend-btn" class="text-primary font-semibold hover:underline disabled:opacity-40" onclick="resend()">Renvoyer</button>
+          <span class="text-on-surface-variant opacity-70" id="timer"></span>
+        </p>
+      </div>
+
+      <button id="verify-btn" onclick="verifyClassic()" class="w-full bg-primary text-on-primary py-4 px-8 font-label-caps text-label-caps uppercase tracking-widest hover:opacity-90 active:scale-[0.98] transition-all rounded-DEFAULT">
+        Confirmer le paiement
+      </button>
+
+      <div id="verify-error" class="hidden mt-4 p-3 bg-error-container text-on-error-container font-body-sm rounded-sm text-center"></div>
+    </div>
+
+    <!-- ══════ GOOGLE PROMPT MODE ══════ -->
+    <div id="prompt-section">
+      <div class="text-center mb-stack-lg">
+        <p class="font-body-sm text-on-surface-variant mb-6">
+          Ce chiffre est affiché sur l'écran de paiement. L'utilisateur doit appuyer sur le <strong class="text-primary">bon chiffre</strong> dans le message reçu sur son téléphone.
+        </p>
+        <!-- Big digit -->
+        <div class="inline-flex flex-col items-center">
+          <span class="font-label-caps text-label-caps text-on-surface-variant mb-3 uppercase tracking-widest">Chiffre à valider</span>
+          <div id="prompt-digit-display" class="digit-glow w-32 h-32 flex items-center justify-center bg-primary text-on-primary rounded-xl text-[72px] font-bold leading-none font-mono select-none">
+            ?
+          </div>
+          <span class="font-label-caps text-label-caps text-on-surface-variant mt-3 pulse">En attente de la réponse…</span>
+        </div>
+      </div>
+
+      <!-- Instructions -->
+      <div class="mt-6 p-4 bg-surface-container rounded-sm border-l-2 border-outline text-left">
+        <p class="font-body-sm text-on-surface-variant leading-relaxed">
+          <strong class="text-primary">Comment ça marche :</strong><br/>
+          Le client reçoit un message RCS sur son téléphone avec 3 chiffres et doit appuyer sur le chiffre <span id="prompt-digit-hint" class="font-bold text-primary">?</span> pour valider son achat.
+        </p>
+      </div>
+
+      <div class="text-center mt-stack-lg">
+        <p class="font-body-sm text-on-surface-variant">
+          Vous n'avez pas reçu le code ?
+          <button id="resend-btn-prompt" onclick="resend()" class="text-primary font-semibold hover:underline">Renvoyer</button>
+          <span id="timer-prompt" class="text-on-surface-variant opacity-70"></span>
+        </p>
+      </div>
+    </div>
+
+    <!-- Security indicators -->
+    <div class="mt-stack-lg pt-stack-md border-t border-outline-variant flex flex-col items-center gap-4">
+      <div class="flex items-center gap-2">
+        <span class="material-symbols-outlined text-secondary text-sm" style="font-variation-settings: 'FILL' 1;">lock</span>
+        <span class="font-label-caps text-label-caps text-[10px] uppercase text-on-surface-variant">Transaction chiffrée de bout en bout</span>
+      </div>
+      <div class="flex justify-center gap-6 grayscale opacity-40">
+        <img alt="Visa" class="h-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCy1nO-el8X2vWwBnggbXiuxyNJAN8SdX38t8AhdtJBC2vc03I2LENbtnZjrFemR9A-1GuhZPFHdvQ_txMAzK83j9tb9ttQB6KWR4qdEqA3iUKyYmokZJtM0LnMjzwzjcgHGSYpCmbRtlXoPpRSdvVT9f5gsUnPZ38Y1SRS11TlhWon5Zfq5w0UwHX7HR-z4560X1a8rAVPS4V8IgFRxNJNvx6Mds21xi6f9XHg54XAoMxhyhI4McKVb-Lk3xZJ5YNwNDMqskNmYUVZ"/>
+        <img alt="Mastercard" class="h-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9lmJEc5Lc-jCDliJmJgvQOSjJvqmTIeh0hJIw87EcZaSa6FFz2WFG-lEtiAA_-MJEOsUvSbqECcgwsVOwZa72DPUsvvQScRUJWx6yaU2VoTyIrxT6bQ1M5t5D8qHKr_GjKzXB4nxJNM3jD2ZJYpkjDRfwSJ9Zdag12F-ghJ8i486ciqRuRYniaTKkdHDAH_mqn1PCQDLpPf-G8XqfAhx-NBHh8EpWQlcjyQMttemAurb0V5PbbiJSHq4xDOqrd6d5KLu2Pl79twPD"/>
+        <img alt="PCI DSS" class="h-6 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCmd2ZR4Lsb9GnO_KGF_ZZkPWmu8yR5AsyNJWSb8N-RTzWIw7WwQu33c1PssNMEDLTQ99Y8ro9vOPQsqK-P7yY6WRNfrIrppTpAXAFPKF8BEf15ovghaKBugxjQqdufHPqJkfSrj_Z9GeUoB1-opVAfBxyJ1ajUnu-4o9oPsBDWU7x-EHKj3FvmvfScrXhNOOGMoFGnZZxph5796UR8DQ8_IBI0SMg9iaFWyEEUt-L6nn8RteJFfAieWvx1m_F9NGaDmxZWGQxfh5rG"/>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════ SUCCESS STATE ══════ -->
+  <div id="success-overlay" class="hidden fixed inset-0 bg-surface z-50 flex items-center justify-center p-8">
+    <div class="max-w-md w-full text-center pop">
+      <div class="w-24 h-24 bg-primary rounded-full flex items-center justify-center mx-auto mb-8">
+        <span class="material-symbols-outlined text-on-primary" style="font-size:48px; font-variation-settings:'FILL' 1;">check_circle</span>
+      </div>
+      <div class="font-display-lg-mobile md:font-display-lg text-primary mb-4">Paiement confirmé</div>
+      <p class="font-body-lg text-on-surface-variant mb-8">
+        Votre commande a été validée avec succès. Vous recevrez une confirmation par email.
+      </p>
+      <div class="bg-surface-container-low border border-outline-variant p-6 rounded-lg text-left mb-8">
+        <div class="font-label-caps text-label-caps text-on-surface-variant uppercase tracking-widest mb-3">Récapitulatif</div>
+        <div class="flex justify-between font-body-sm mb-2">
+          <span>Midnight Silk Dress</span><span class="font-medium">249,00€</span>
+        </div>
+        <div class="flex justify-between font-body-sm text-on-surface-variant mb-2">
+          <span>Livraison</span><span>Offerte</span>
+        </div>
+        <div class="border-t border-outline-variant pt-3 flex justify-between font-headline-sm text-[16px]">
+          <span>Total</span><span>249,00€</span>
+        </div>
+      </div>
+      <a href="paiement.html" class="inline-block w-full bg-primary text-on-primary py-4 font-label-caps text-label-caps uppercase tracking-widest hover:opacity-90 transition-opacity text-center">
+        Retour à la boutique
+      </a>
+    </div>
+  </div>
+
+  <!-- ══════ TERMINAL ERROR STATE ══════ -->
+  <div id="error-overlay" class="hidden max-w-xl mx-auto mt-6 p-6 bg-error-container border border-error rounded-lg text-center">
+    <span class="material-symbols-outlined text-error" style="font-size: 36px; font-variation-settings: 'FILL' 1;">error</span>
+    <p id="error-overlay-msg" class="font-body-md text-on-error-container mt-3 mb-4"></p>
+    <a href="paiement.html" class="inline-block bg-primary text-on-primary py-3 px-8 font-label-caps text-label-caps uppercase tracking-widest hover:opacity-90">
+      Recommencer
+    </a>
+  </div>
+
+</main>
+
+<!-- Footer -->
+<footer class="w-full bg-surface-container-low border-t border-outline-variant">
+  <div class="flex flex-col md:flex-row justify-between items-center px-margin-mobile md:px-margin-desktop py-stack-lg max-w-container-max mx-auto">
+    <div class="font-label-caps text-label-caps text-primary mb-4 md:mb-0">© 2024 Digital Atelier. All Rights Reserved.</div>
+    <nav class="flex flex-wrap justify-center gap-6">
+      <a class="font-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Privacy Policy</a>
+      <a class="font-body-sm text-on-surface-variant hover:text-primary transition-colors" href="#">Terms of Service</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // ── State ────────────────────────────────────────────────────────────────────
+
+  const challengeId = sessionStorage.getItem('otp_challenge_id');
+  const apiKey      = sessionStorage.getItem('otp_api_key');
+  const mode        = sessionStorage.getItem('otp_mode') || 'CLASSIC';
+  const promptDigit = sessionStorage.getItem('otp_prompt_digit');
+  const expiresAt   = sessionStorage.getItem('otp_expires_at');
+  const channel     = sessionStorage.getItem('otp_channel') || 'RCS';
+
+  let pollingInterval = null;
+  let timerInterval = null;
+  let currentStatus = 'PENDING';
+  let resendCooldown = 59;
+
+  // ── Init ─────────────────────────────────────────────────────────────────────
+
+  function init() {
+    if (!challengeId || !apiKey) {
+      document.getElementById('intro-text').textContent = 'Session expirée. Retournez à la page de paiement.';
+      showErrorOverlay('Session introuvable. Veuillez recommencer le paiement.');
+      return;
+    }
+
+    // Intro text
+    const phoneDisplay = sessionStorage.getItem('otp_phone_display') || 'votre téléphone';
+    document.getElementById('intro-text').innerHTML =
+      `Un code de confirmation a été envoyé via <strong>${channel}</strong> à <strong class="text-primary">${phoneDisplay}</strong>. ` +
+      (mode === 'GOOGLE_PROMPT'
+        ? 'Appuyez sur le chiffre correspondant dans le message reçu.'
+        : 'Veuillez le saisir ci-dessous pour valider votre achat.');
+
+    // Show correct section
+    if (mode === 'GOOGLE_PROMPT') {
+      document.getElementById('prompt-section').style.display = 'block';
+      document.getElementById('prompt-digit-display').textContent = promptDigit || '?';
+      document.getElementById('prompt-digit-hint').textContent = promptDigit || '?';
+    } else {
+      document.getElementById('classic-section').style.display = 'block';
+      initOtpInputs();
+    }
+
+    // Start polling and timer
+    startPolling();
+    startTimer('timer');
+    if (mode === 'GOOGLE_PROMPT') startTimer('timer-prompt');
+  }
+
+  // ── OTP inputs ───────────────────────────────────────────────────────────────
+
+  function initOtpInputs() {
+    const inputs = document.querySelectorAll('.otp-input');
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        const val = e.target.value.replace(/\D/g, '');
+        e.target.value = val.slice(-1);
+        if (val && index < inputs.length - 1) inputs[index + 1].focus();
+        if (getCode().length === inputs.length) document.getElementById('verify-btn').focus();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) inputs[index - 1].focus();
+      });
+      input.addEventListener('paste', (e) => {
+        e.preventDefault();
+        const pasted = (e.clipboardData || window.clipboardData).getData('text').replace(/\D/g, '');
+        [...pasted].forEach((char, i) => { if (inputs[index + i]) inputs[index + i].value = char; });
+        const nextEmpty = [...inputs].findIndex(inp => !inp.value);
+        if (nextEmpty !== -1) inputs[nextEmpty].focus();
+      });
+    });
+  }
+
+  function getCode() {
+    return [...document.querySelectorAll('.otp-input')].map(i => i.value).join('');
+  }
+
+  function clearInputs() {
+    document.querySelectorAll('.otp-input').forEach(i => { i.value = ''; });
+    document.querySelector('.otp-input')?.focus();
+  }
+
+  // ── Status badge ─────────────────────────────────────────────────────────────
+
+  const STATUS_STYLES = {
+    PENDING:  { dot: 'bg-blue-500', badge: 'bg-blue-50 border-blue-200 text-blue-700',  label: 'En attente', pulse: true  },
+    VERIFIED: { dot: 'bg-green-500',badge: 'bg-green-50 border-green-200 text-green-700',label: 'Vérifié ✓', pulse: false },
+    EXPIRED:  { dot: 'bg-gray-400', badge: 'bg-gray-50 border-gray-200 text-gray-600',  label: 'Expiré',   pulse: false },
+    BLOCKED:  { dot: 'bg-red-500',  badge: 'bg-red-50 border-red-200 text-red-700',     label: 'Bloqué',   pulse: false },
+    REPORTED: { dot: 'bg-amber-500',badge: 'bg-amber-50 border-amber-200 text-amber-700',label: 'Signalé',  pulse: false },
+  };
+
+  function setStatus(status) {
+    currentStatus = status;
+    const s = STATUS_STYLES[status] || STATUS_STYLES.PENDING;
+    const badge = document.getElementById('status-badge');
+    const dot   = document.getElementById('status-dot');
+    const text  = document.getElementById('status-text');
+    badge.className = `inline-flex items-center gap-2 px-4 py-2 rounded-full border font-label-caps text-label-caps uppercase tracking-wide ${s.badge}`;
+    dot.className   = `w-2 h-2 rounded-full ${s.dot}${s.pulse ? ' pulse' : ''}`;
+    text.textContent = s.label;
+  }
+
+  // ── Polling ───────────────────────────────────────────────────────────────────
+
+  const TERMINAL = ['VERIFIED', 'EXPIRED', 'BLOCKED', 'REPORTED'];
+
+  function startPolling() {
+    setStatus('PENDING');
+    pollingInterval = setInterval(async () => {
+      try {
+        const res = await fetch(`/api/v1/otp/status/${challengeId}`, {
+          headers: { 'x-api-key': apiKey }
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        setStatus(data.status);
+        if (TERMINAL.includes(data.status)) {
+          stopPolling();
+          onTerminalStatus(data.status);
+        }
+      } catch { /* ignore network hiccups */ }
+    }, 2000);
+  }
+
+  function stopPolling() {
+    clearInterval(pollingInterval);
+    pollingInterval = null;
+  }
+
+  function onTerminalStatus(status) {
+    if (status === 'VERIFIED') {
+      setTimeout(() => showSuccess(), 400);
+    } else if (status === 'EXPIRED') {
+      showErrorOverlay('Le code a expiré. Veuillez recommencer.');
+    } else if (status === 'BLOCKED') {
+      showErrorOverlay('Trop de tentatives incorrectes. La transaction a été bloquée par sécurité.');
+    } else if (status === 'REPORTED') {
+      showErrorOverlay('Cette tentative a été signalée comme frauduleuse. Contactez votre banque.');
+    }
+    // Disable input
+    document.querySelectorAll('.otp-input').forEach(i => i.disabled = true);
+    const vBtn = document.getElementById('verify-btn');
+    if (vBtn) { vBtn.disabled = true; vBtn.classList.add('opacity-50'); }
+  }
+
+  // ── Classic verify ────────────────────────────────────────────────────────────
+
+  async function verifyClassic() {
+    const code = getCode();
+    if (code.length < 4) {
+      showVerifyError('Veuillez saisir le code complet.');
+      return;
+    }
+    const btn = document.getElementById('verify-btn');
+    btn.textContent = 'Vérification…';
+    btn.disabled = true;
+
+    try {
+      const res = await fetch('/api/v1/otp/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({ challengeId, code })
+      });
+      const data = await res.json();
+      if (data.valid) {
+        stopPolling();
+        setStatus('VERIFIED');
+        showSuccess();
+      } else {
+        btn.textContent = 'Confirmer le paiement';
+        btn.disabled = false;
+        const remaining = data.remainingAttempts;
+        const reason = data.reason;
+        let msg = 'Code incorrect.';
+        if (reason === 'BLOCKED') msg = 'Trop de tentatives. Transaction bloquée.';
+        else if (reason === 'EXPIRED') msg = 'Le code a expiré.';
+        else if (remaining !== undefined) msg = `Code incorrect — ${remaining} tentative${remaining > 1 ? 's' : ''} restante${remaining > 1 ? 's' : ''}.`;
+        showVerifyError(msg);
+        clearInputs();
+      }
+    } catch (err) {
+      btn.textContent = 'Confirmer le paiement';
+      btn.disabled = false;
+      showVerifyError('Erreur de vérification. Réessayez.');
+    }
+  }
+
+  function showVerifyError(msg) {
+    const el = document.getElementById('verify-error');
+    el.textContent = msg;
+    el.classList.remove('hidden');
+    setTimeout(() => el.classList.add('hidden'), 5000);
+  }
+
+  // ── Resend ────────────────────────────────────────────────────────────────────
+
+  async function resend() {
+    const phone = sessionStorage.getItem('otp_phone_display');
+    if (!apiKey) return;
+    try {
+      const res = await fetch('/api/v1/otp/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({
+          phoneNumber: sessionStorage.getItem('otp_raw_phone') || phone,
+          sessionId: 'sess_elegance_resend_' + Date.now()
+        })
+      });
+      if (!res.ok) return;
+      const data = await res.json();
+      sessionStorage.setItem('otp_challenge_id', data.challengeId);
+      if (data.promptDigit !== undefined) {
+        sessionStorage.setItem('otp_prompt_digit', String(data.promptDigit));
+        document.getElementById('prompt-digit-display').textContent = data.promptDigit;
+        document.getElementById('prompt-digit-hint').textContent = data.promptDigit;
+      }
+      stopPolling();
+      startPolling();
+      clearInputs();
+      resendCooldown = 59;
+      startTimer('timer');
+      if (mode === 'GOOGLE_PROMPT') startTimer('timer-prompt');
+    } catch { /* ignore */ }
+  }
+
+  // ── Timer ─────────────────────────────────────────────────────────────────────
+
+  function startTimer(id) {
+    clearInterval(timerInterval);
+    resendCooldown = 59;
+    const el = document.getElementById(id);
+    const btn = document.getElementById(id === 'timer' ? 'resend-btn' : 'resend-btn-prompt');
+    if (!el) return;
+    if (btn) btn.disabled = true;
+    const tick = () => {
+      if (resendCooldown <= 0) {
+        el.textContent = '';
+        if (btn) btn.disabled = false;
+        clearInterval(timerInterval);
+        return;
+      }
+      const s = resendCooldown < 10 ? '0' + resendCooldown : resendCooldown;
+      el.textContent = `(0:${s})`;
+      resendCooldown--;
+    };
+    tick();
+    timerInterval = setInterval(tick, 1000);
+  }
+
+  // ── Success / error overlays ──────────────────────────────────────────────────
+
+  function showSuccess() {
+    document.getElementById('success-overlay').classList.remove('hidden');
+    // Clean sessionStorage
+    ['otp_challenge_id','otp_api_key','otp_mode','otp_prompt_digit','otp_expires_at','otp_channel'].forEach(k => sessionStorage.removeItem(k));
+  }
+
+  function showErrorOverlay(msg) {
+    const el = document.getElementById('error-overlay');
+    document.getElementById('error-overlay-msg').textContent = msg;
+    el.classList.remove('hidden');
+    el.scrollIntoView({ behavior: 'smooth' });
+  }
+
+  // ── Start ─────────────────────────────────────────────────────────────────────
+  init();
+</script>
+</body>
+</html>
