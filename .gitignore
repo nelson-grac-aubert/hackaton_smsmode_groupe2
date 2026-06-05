@@ -1,28 +1,28 @@
 # Build
-/dist
-/build
+dist/
+build/
 *.tsbuildinfo
 
 # Dependencies
-/node_modules
+node_modules/
 
-# Environment — ne jamais committer les secrets
+# Environment
 .env
 .env.*
 !.env.example
 
 # IDE
-.idea
-.vscode
-.cursor
-.zed
+.idea/
+.vscode/
+.cursor/
+.zed/
 *.swp
 *.swo
 *~
 
 # Tests
-/coverage
-.nyc_output
+coverage/
+.nyc_output/
 
 # Logs
 *.log

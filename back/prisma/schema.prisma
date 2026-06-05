@@ -1,0 +1,75 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model OtpApp {
+  id     String @id @default(cuid())
+  name   String
+  mail   String @unique
+  apiKey String @unique
+
+  ttlSeconds     Int @default(300)
+  codeLength     Int @default(6)
+  maxAttempts    Int @default(3)
+  resendCooldown Int @default(30)
+
+  smsFallback   Boolean @default(true)
+  fallbackAfter Int     @default(20)
+
+  oneTapEnabled     Boolean @default(true)
+  verifyRedirectUrl String
+
+  senderLabel     String  @default("Verification")
+  brandColor      String  @default("#0F6E56")
+  logoUrl         String?
+  cardTitle       String  @default("Code de vérification")
+  messageTemplate String  @default("Votre code est {{code}}, valable {{ttl}} min.")
+  locale          String  @default("fr")
+
+  allowedCountries String[] @default([])
+  rateLimitPhone   Int      @default(5)
+  rateLimitIp      Int      @default(20)
+  reportEnabled    Boolean  @default(true)
+
+  challenges OtpTransaction[]
+  createdAt  DateTime         @default(now())
+}
+
+model OtpTransaction {
+  id    String @id @default(cuid())
+  appId String
+  app   OtpApp @relation(fields: [appId], references: [id])
+
+  phoneHash String
+  sessionId String
+  codeHash  String
+  tapToken  String? @unique
+  tapUsed   Boolean @default(false)
+
+  status   OtpStatus @default(PENDING)
+  attempts Int       @default(0)
+  channel  Channel   @default(RCS)
+
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum OtpStatus {
+  PENDING
+  VERIFIED
+  EXPIRED
+  BLOCKED
+  REPORTED
+}
+
+enum Channel {
+  RCS
+  SMS
+}

@@ -1,0 +1,46 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&family=Playfair+Display:wght@400;500;600&display=swap');
+
+:root {
+  --background: #fbf9f9;
+  --surface: #fbf9f9;
+  --surface-container-lowest: #ffffff;
+  --surface-container-low: #f5f3f3;
+  --surface-container: #efeded;
+  --surface-container-highest: #e3e2e2;
+  --on-background: #1b1c1c;
+  --on-surface: #1b1c1c;
+  --on-surface-variant: #444748;
+  --outline-variant: #c4c7c7;
+  --primary: #000000;
+  --on-primary: #ffffff;
+  --error-container: #ffdad6;
+  --on-error-container: #93000a;
+  --font-heading: 'Playfair Display', Georgia, serif;
+  --font-body: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+
+  color: var(--on-background);
+  background: var(--background);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 24px;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  min-width: 0;
+}
+
+body {
+  min-height: max(884px, 100dvh);
+  margin: 0;
+  background: var(--background);
+}
+
+button,
+input {
+  font: inherit;
+}

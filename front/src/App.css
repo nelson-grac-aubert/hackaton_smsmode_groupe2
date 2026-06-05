@@ -1,0 +1,53 @@
+.page-placeholder {
+  min-height: 100svh;
+  padding: 96px 20px;
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+}
+
+.page-placeholder section {
+  width: min(448px, 100%);
+}
+
+.page-placeholder__eyebrow {
+  margin: 0 0 10px;
+  color: var(--on-surface-variant);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.page-placeholder h1 {
+  margin: 0 0 12px;
+  color: var(--on-background);
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 500;
+  line-height: 40px;
+}
+
+.page-placeholder p {
+  margin: 0 0 32px;
+  color: var(--on-surface-variant);
+}
+
+.page-placeholder strong {
+  color: var(--on-surface);
+}
+
+.page-placeholder button {
+  width: 100%;
+  border: 0;
+  padding: 20px;
+  color: var(--on-primary);
+  background: var(--primary);
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 20px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
