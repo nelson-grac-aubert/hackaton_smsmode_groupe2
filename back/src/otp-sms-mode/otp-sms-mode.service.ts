@@ -1,6 +1,7 @@
 import {
   Injectable,
   InternalServerErrorException,
+  Logger,
   NotFoundException,
   ServiceUnavailableException,
   BadRequestException,
@@ -18,110 +19,120 @@ import {
   RcsError,
   AuthError,
   RateLimitError,
+  SmsModeApiError,
   type RcsMessage,
-  RcsSuggestion,
+  type RcsSuggestion,
+  type RcsCardContent,
+  type RcsBody,
 } from '@smsmode/rcs';
 import { ConfigService } from '@nestjs/config';
 import {
   EnvironmentVariables,
   ServerConfig,
 } from '../_utils/configs/env.config';
+import { PrismaService } from '../prisma/prisma.service';
+import { OtpSecurityService } from './otp-security.service';
 import { CreateOtpCodeDto } from './_utils/dtos/request/create-otp-code.dto';
+import { Channel, OtpMode, OtpStatus } from '../generated/prisma/enums';
 import { VerifyOtpCodeDto } from './_utils/dtos/request/verify-otp-code.dto';
 import { CreateOtpAppDto } from './_utils/dtos/request/create-otp-app.dto';
-import { PrismaService } from '../prisma/prisma.service';
-import { Channel } from '../generated/prisma/enums';
+import { OtpApp } from '../generated/prisma/client';
 
 @Injectable()
 export class OtpSmsModeService {
+  private readonly logger = new Logger(OtpSmsModeService.name);
   private readonly client: SmsmodeRcsClient;
+  private readonly phoneHmacSecret: string;
+  private readonly publicUrl: string;
+  private readonly otpProviderMode: string;
 
   constructor(
     private readonly configService: ConfigService<EnvironmentVariables, true>,
     private readonly prisma: PrismaService,
+    private readonly security: OtpSecurityService,
   ) {
-    this.client = new SmsmodeRcsClient({
-      apiKey: this.configService.get<ServerConfig>('SERVER').OTP_API_KEY,
-    });
+    const serverConfig = this.configService.get<ServerConfig>('SERVER');
+    this.client = new SmsmodeRcsClient({ apiKey: serverConfig.OTP_API_KEY });
+    this.phoneHmacSecret = serverConfig.PHONE_HMAC_SECRET;
+    this.publicUrl = serverConfig.PUBLIC_URL;
+    this.otpProviderMode = serverConfig.OTP_PROVIDER_MODE ?? 'live';
   }
 
-  async generateOtp(dto: CreateOtpCodeDto) {
-    const app = await this.prisma.otpApp.findUnique({
-      where: { id: dto.appId },
-    });
-    if (!app) throw new NotFoundException(`App ${dto.appId} not found`);
+  async generateOtp(dto: CreateOtpCodeDto, app: OtpApp, clientIp: string) {
+    const phoneHash = this.hmacPhone(dto.phoneNumber);
 
+    this.security.validateCountry(dto.phoneNumber, app.allowedCountries);
+    this.security.checkAndRecordIpRate(clientIp, app.rateLimitIp);
+    this.security.checkAndRecordPhoneRate(phoneHash, app.rateLimitPhone);
+    this.security.checkResendCooldown(app.id, phoneHash, app.resendCooldown);
+
+    if (app.otpMode === OtpMode.GOOGLE_PROMPT) {
+      return this.generateGooglePromptOtp(dto, app, phoneHash);
+    }
+
+    return this.generateClassicOtp(dto, app, phoneHash);
+  }
+
+  private async generateClassicOtp(
+    dto: CreateOtpCodeDto,
+    app: OtpApp,
+    phoneHash: string,
+  ) {
     const code = Array.from({ length: app.codeLength }, () =>
       randomInt(10),
     ).join('');
 
-    const phoneHash = createHmac(
-      'sha256',
-      process.env.PHONE_HMAC_SECRET ?? 'dev_secret',
-    )
-      .update(dto.phoneNumber)
-      .digest('hex');
-
     const codeHash = await bcrypt.hash(code, 10);
     const tapToken = app.oneTapEnabled ? randomUUID() : null;
 
-    const ttlMin = Math.max(1, Math.round(app.ttlSeconds / 60));
-
-    const prettyCode =
-      code.length === 6 ? `${code.slice(0, 3)} ${code.slice(3)}` : code;
-
-    const description = `Votre code ${app.name} est ${prettyCode}, valable ${ttlMin} min.`;
+    const description = this.buildClassicDescription(
+      app.messageTemplate,
+      code,
+      app.ttlSeconds,
+      app.senderLabel,
+    );
 
     const cardSuggestions: RcsSuggestion[] = [];
 
     if (tapToken) {
       cardSuggestions.push({
         type: 'OPEN_URL',
-        text: '✓ Valider en 1 tap',
-        postbackData: `verify_tap:${tapToken}`,
-        url: `${this.configService.get<ServerConfig>('SERVER').PUBLIC_URL}/otp/tap/${tapToken}`,
+        text: '✅ Valider la connexion',
+        postbackData: 'verify_tap',
+        url: `${this.publicUrl}/api/v1/otp/tap?token=${tapToken}`,
       });
     }
 
-    if (app.reportEnabled) {
-      cardSuggestions.push({
+    const bodySuggestions: RcsSuggestion[] = [];
+
+    if (app.reportEnabled && tapToken) {
+      bodySuggestions.push({
         type: 'REPLY',
-        text: "Ce n'est pas moi",
-        postbackData: `report:${tapToken ?? 'na'}`,
+        text: "🚫 Ce n'est pas moi",
+        postbackData: `report:${tapToken}`,
       });
     }
 
-    let message: RcsMessage;
-    try {
-      message = await this.client.send({
-        recipient: { to: dto.phoneNumber },
-        validity: { amount: app.ttlSeconds, timeUnit: 'SECONDS' },
-        body: {
-          type: 'CARD',
-          orientation: 'VERTICAL',
-          content: {
-            title: app.cardTitle,
-            description,
-            ...(app.logoUrl
-              ? { media: { fileUrl: app.logoUrl, height: 'SHORT' as const } }
-              : {}),
-            suggestions: cardSuggestions,
-          },
-        },
-      });
-    } catch (err) {
-      if (err instanceof AuthError)
-        throw new InternalServerErrorException('OTP provider auth failed');
-      if (err instanceof RateLimitError)
-        throw new ServiceUnavailableException('OTP provider rate limited');
-      if (err instanceof RcsError)
-        throw new BadRequestException(`OTP send failed: ${err.message}`);
-      throw err;
-    }
+    const resolvedLogoUrl = await this.resolveLogoUrl(app.logoUrl);
 
+    const cardContent: RcsCardContent = {
+      title: app.cardTitle,
+      description,
+      ...(resolvedLogoUrl
+        ? { media: { fileUrl: resolvedLogoUrl, height: 'SHORT' as const } }
+        : {}),
+      suggestions: cardSuggestions,
+    };
+
+    const body: RcsBody = {
+      type: 'CARD',
+      orientation: 'VERTICAL',
+      content: cardContent,
+      suggestions: bodySuggestions,
+    };
+
+    const message = await this.sendRcs(app, dto.phoneNumber, tapToken, body);
     const expiresAt = new Date(Date.now() + app.ttlSeconds * 1_000);
-    const channel =
-      message.type?.toUpperCase() === 'RCS' ? Channel.RCS : Channel.SMS;
 
     const txn = await this.prisma.otpTransaction.create({
       data: {
@@ -130,12 +141,103 @@ export class OtpSmsModeService {
         sessionId: dto.sessionId,
         codeHash,
         tapToken,
-        channel,
+        channel: message.type,
         expiresAt,
       },
     });
 
-    return { challengeId: txn.id, expiresAt, channel, status: txn.status };
+    this.security.recordSent(app.id, phoneHash);
+    this.logger.log(`OTP CLASSIC généré — challenge=${txn.id}`);
+
+    return {
+      challengeId: txn.id,
+      expiresAt,
+      channel: message.type,
+      status: txn.status,
+      ...(this.isProviderMockEnabled() ? { debugCode: code } : {}),
+    };
+  }
+
+  private async generateGooglePromptOtp(
+    dto: CreateOtpCodeDto,
+    app: OtpApp,
+    phoneHash: string,
+  ) {
+    const promptDigit = randomInt(10);
+    const codeHash = await bcrypt.hash(String(promptDigit), 10);
+    const tapToken = randomUUID();
+
+    const [decoy1, decoy2] = this.buildDecoys(promptDigit);
+
+    const allChoices = this.shuffleArray([
+      { digit: promptDigit, token: tapToken },
+      { digit: decoy1, token: randomUUID() },
+      { digit: decoy2, token: randomUUID() },
+    ]);
+
+    const resolvedLogoUrl = await this.resolveLogoUrl(app.logoUrl);
+
+    const cards: RcsCardContent[] = allChoices.map(({ digit, token }) => ({
+      title: String(digit),
+      description:
+        'Appuyez si ce chiffre correspond à celui affiché sur votre écran',
+      ...(resolvedLogoUrl
+        ? { media: { fileUrl: resolvedLogoUrl, height: 'SHORT' as const } }
+        : {}),
+      suggestions: [
+        {
+          type: 'OPEN_URL',
+          text: `Appuyer sur ${digit}`,
+          postbackData: `prompt:${token}`,
+          url: `${this.publicUrl}/api/v1/otp/tap?token=${token}`,
+        } satisfies RcsSuggestion,
+      ],
+    }));
+
+    const bodySuggestions: RcsSuggestion[] = [];
+
+    if (app.reportEnabled) {
+      bodySuggestions.push({
+        type: 'REPLY',
+        text: "🚫 Ce n'est pas moi",
+        postbackData: `report:${tapToken}`,
+      });
+    }
+
+    const body: RcsBody = {
+      type: 'CAROUSEL',
+      contents: cards,
+      suggestions: bodySuggestions,
+    };
+
+    const message = await this.sendRcs(app, dto.phoneNumber, tapToken, body);
+    const expiresAt = new Date(Date.now() + app.ttlSeconds * 1_000);
+
+    const txn = await this.prisma.otpTransaction.create({
+      data: {
+        appId: app.id,
+        phoneHash,
+        sessionId: dto.sessionId,
+        codeHash,
+        tapToken,
+        channel: message.type,
+        expiresAt,
+        promptDigit,
+      },
+    });
+
+    this.security.recordSent(app.id, phoneHash);
+    this.logger.log(
+      `OTP GOOGLE_PROMPT généré — challenge=${txn.id} digit=${promptDigit}`,
+    );
+
+    return {
+      challengeId: txn.id,
+      expiresAt,
+      channel: message.type,
+      status: txn.status,
+      promptDigit,
+    };
   }
 
   async verifyOtp(dto: VerifyOtpCodeDto) {
@@ -145,13 +247,13 @@ export class OtpSmsModeService {
     });
 
     if (!txn) return { valid: false, reason: 'NOT_FOUND' };
-
-    if (txn.status !== 'PENDING') return { valid: false, reason: txn.status };
+    if (txn.status !== OtpStatus.PENDING)
+      return { valid: false, reason: txn.status };
 
     if (txn.expiresAt < new Date()) {
       await this.prisma.otpTransaction.update({
         where: { id: txn.id },
-        data: { status: 'EXPIRED' },
+        data: { status: OtpStatus.EXPIRED },
       });
       return { valid: false, reason: 'EXPIRED' };
     }
@@ -159,7 +261,7 @@ export class OtpSmsModeService {
     if (txn.attempts >= txn.app.maxAttempts) {
       await this.prisma.otpTransaction.update({
         where: { id: txn.id },
-        data: { status: 'BLOCKED' },
+        data: { status: OtpStatus.BLOCKED },
       });
       return { valid: false, reason: 'BLOCKED' };
     }
@@ -169,16 +271,21 @@ export class OtpSmsModeService {
     if (valid) {
       await this.prisma.otpTransaction.update({
         where: { id: txn.id },
-        data: { status: 'VERIFIED' },
+        data: { status: OtpStatus.VERIFIED },
       });
+      this.logger.log(`OTP vérifié manuellement — challenge=${txn.id}`);
       return { valid: true };
     }
 
     const newAttempts = txn.attempts + 1;
     const blocked = newAttempts >= txn.app.maxAttempts;
+
     await this.prisma.otpTransaction.update({
       where: { id: txn.id },
-      data: { attempts: newAttempts, status: blocked ? 'BLOCKED' : 'PENDING' },
+      data: {
+        attempts: newAttempts,
+        status: blocked ? OtpStatus.BLOCKED : OtpStatus.PENDING,
+      },
     });
 
     return {
@@ -186,6 +293,59 @@ export class OtpSmsModeService {
       reason: blocked ? 'BLOCKED' : 'INVALID_CODE',
       remainingAttempts: txn.app.maxAttempts - newAttempts,
     };
+  }
+
+  async verifyTap(tapToken: string) {
+    const txn = await this.prisma.otpTransaction.findUnique({
+      where: { tapToken },
+      include: { app: true },
+    });
+
+    const failRedirect = (reason: string) => {
+      const base = txn?.app?.verifyRedirectUrl ?? `${this.publicUrl}/tap-error`;
+      return { redirectUrl: `${base}?success=false&reason=${reason}` };
+    };
+
+    if (!txn) return failRedirect('NOT_FOUND');
+    if (!txn.app.oneTapEnabled) return failRedirect('TAP_DISABLED');
+    if (txn.tapUsed) return failRedirect('TOKEN_ALREADY_USED');
+    if (txn.status !== OtpStatus.PENDING) return failRedirect(txn.status);
+
+    if (txn.expiresAt < new Date()) {
+      await this.prisma.otpTransaction.update({
+        where: { id: txn.id },
+        data: { status: OtpStatus.EXPIRED },
+      });
+      return failRedirect('EXPIRED');
+    }
+
+    await this.prisma.otpTransaction.update({
+      where: { id: txn.id },
+      data: { status: OtpStatus.VERIFIED, tapUsed: true },
+    });
+
+    this.logger.log(`OTP validé en 1 tap — challenge=${txn.id}`);
+    return { redirectUrl: `${txn.app.verifyRedirectUrl}?success=true` };
+  }
+
+  async getStatus(challengeId: string) {
+    const txn = await this.prisma.otpTransaction.findUnique({
+      where: { id: challengeId },
+      select: { status: true, expiresAt: true, id: true },
+    });
+
+    if (!txn)
+      throw new NotFoundException(`Challenge ${challengeId} introuvable`);
+
+    if (txn.status === OtpStatus.PENDING && txn.expiresAt < new Date()) {
+      await this.prisma.otpTransaction.update({
+        where: { id: txn.id },
+        data: { status: OtpStatus.EXPIRED },
+      });
+      return { status: OtpStatus.EXPIRED };
+    }
+
+    return { status: txn.status };
   }
 
   async createApp(dto: CreateOtpAppDto) {
@@ -196,6 +356,133 @@ export class OtpSmsModeService {
       data: { ...dto, apiKey: apiKeyHash },
     });
 
+    this.logger.log(`App OTP créée — id=${app.id} name=${app.name}`);
     return { id: app.id, name: app.name, apiKey };
+  }
+
+  private hmacPhone(phone: string): string {
+    return createHmac('sha256', this.phoneHmacSecret)
+      .update(phone)
+      .digest('hex');
+  }
+
+  private buildClassicDescription(
+    template: string,
+    code: string,
+    ttlSeconds: number,
+    brand: string,
+  ): string {
+    const ttlMin = Math.max(1, Math.round(ttlSeconds / 60));
+    const spacedCode = code.split('').join('  ');
+    const intro = template
+      .replace(/{{code}}/g, '')
+      .replace(/{{ttl}}/g, String(ttlMin))
+      .replace(/{{brand}}/g, brand)
+      .trim();
+
+    return `${intro}\n\n\u2015 \u2015 \u2015 \u2015 \u2015 \u2015\n\n    ${spacedCode}\n\n\u2015 \u2015 \u2015 \u2015 \u2015 \u2015`;
+  }
+
+  private buildDecoys(correct: number): [number, number] {
+    const decoys: number[] = [];
+    while (decoys.length < 2) {
+      const d = randomInt(10);
+      if (d !== correct && !decoys.includes(d)) decoys.push(d);
+    }
+    return [decoys[0] as number, decoys[1] as number];
+  }
+
+  private shuffleArray<T>(arr: readonly T[]): T[] {
+    const result = [...arr];
+    for (let i = result.length - 1; i > 0; i--) {
+      const j = randomInt(i + 1);
+      const tmp = result[i] as T;
+      result[i] = result[j] as T;
+      result[j] = tmp;
+    }
+    return result;
+  }
+
+  private async resolveLogoUrl(logoUrl: string | null): Promise<string | null> {
+    if (!logoUrl) return null;
+    return (await this.isLogoUrlReachable(logoUrl)) ? logoUrl : null;
+  }
+
+  private async sendRcs(
+    app: OtpApp,
+    phoneNumber: string,
+    tapToken: string | null,
+    body: RcsBody,
+  ): Promise<RcsMessage> {
+    if (this.isProviderMockEnabled()) {
+      this.logger.warn(
+        `OTP provider en mode mock - aucun message RCS envoye pour app=${app.id} phone=${phoneNumber}`,
+      );
+      return { type: Channel.RCS } as unknown as RcsMessage;
+    }
+
+    try {
+      return await this.client.send({
+        recipient: { to: phoneNumber },
+        validity: { amount: app.ttlSeconds, timeUnit: 'SECONDS' },
+        ...(tapToken ? { refClient: tapToken } : {}),
+        callbackUrlMo: `${this.publicUrl}/api/v1/webhook/rcs`,
+        body,
+      });
+    } catch (err) {
+      if (err instanceof AuthError)
+        throw new InternalServerErrorException(
+          'Authentification provider OTP échouée',
+        );
+      if (err instanceof RateLimitError)
+        throw new ServiceUnavailableException(
+          `Provider OTP en surcharge — réessayez dans ${err.retryAfter ?? 60}s`,
+        );
+      if (err instanceof SmsModeApiError)
+        throw new BadRequestException(
+          `Envoi OTP échoué : ${err.detail} (code: ${err.errorCode})`,
+        );
+      if (err instanceof RcsError)
+        throw new ServiceUnavailableException(
+          `Erreur provider OTP : ${err.message}`,
+        );
+      throw err;
+    }
+  }
+
+  private isProviderMockEnabled(): boolean {
+    return this.otpProviderMode.toLowerCase() === 'mock';
+  }
+
+  private async isLogoUrlReachable(url: string): Promise<boolean> {
+    try {
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 4_000);
+      const res = await fetch(url, {
+        method: 'HEAD',
+        signal: controller.signal,
+      });
+      clearTimeout(timeout);
+
+      if (!res.ok) {
+        this.logger.warn(`Logo URL inaccessible (HTTP ${res.status}) : ${url}`);
+        return false;
+      }
+
+      const contentType = res.headers.get('content-type') ?? '';
+      if (!contentType.startsWith('image/')) {
+        this.logger.warn(`Logo URL non-image (${contentType}) : ${url}`);
+        return false;
+      }
+
+      return true;
+    } catch (err: unknown) {
+      const reason =
+        err instanceof Error && err.name === 'AbortError'
+          ? 'timeout (4s)'
+          : String(err);
+      this.logger.warn(`Logo URL injoignable (${reason}) : ${url}`);
+      return false;
+    }
   }
 }

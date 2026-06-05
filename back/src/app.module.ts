@@ -5,6 +5,7 @@ import { OtpSmsModeModule } from './otp-sms-mode/otp-sms-mode.module';
 import { TerminusModule } from '@nestjs/terminus';
 import { ConfigModule } from '@nestjs/config';
 import { validateEnv } from './_utils/configs/env.config';
+import { WebhookModule } from './webhook/webhook.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { validateEnv } from './_utils/configs/env.config';
     }),
 
     OtpSmsModeModule,
+    WebhookModule,
     TerminusModule,
   ],
   controllers: [AppController],

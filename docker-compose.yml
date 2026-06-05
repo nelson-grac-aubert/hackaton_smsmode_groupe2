@@ -34,6 +34,9 @@ services:
       NODE_ENV: DEVELOPMENT
       FRONTEND_URL: http://localhost:${FRONTEND_PORT:-5173}
       OTP_API_KEY: ${OTP_API_KEY:-x}
+      OTP_PROVIDER_MODE: ${OTP_PROVIDER_MODE:-mock}
+      PUBLIC_URL: ${PUBLIC_URL:-http://localhost:3000}
+      PHONE_HMAC_SECRET: ${PHONE_HMAC_SECRET:-dev_phone_hmac_secret}
     ports:
       - "${NESTJS_PORT:-3000}:3000"
     depends_on:

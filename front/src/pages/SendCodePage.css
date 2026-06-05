@@ -246,6 +246,43 @@
   gap: 4px;
 }
 
+.mode-selector {
+  display: grid;
+  gap: 8px;
+}
+
+.mode-option {
+  border: 1px solid var(--outline-variant);
+  border-radius: 4px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 4px;
+  color: var(--on-surface-variant);
+  background: var(--surface-container-low);
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 0.2s,
+    background 0.2s;
+}
+
+.mode-option strong {
+  color: var(--on-surface);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 20px;
+}
+
+.mode-option span {
+  font-size: 13px;
+  line-height: 19px;
+}
+
+.mode-option--active {
+  border-color: var(--primary);
+  background: var(--surface-container-lowest);
+}
+
 .send-code-page input {
   width: 100%;
   box-sizing: border-box;

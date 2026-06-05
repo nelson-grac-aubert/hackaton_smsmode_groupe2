@@ -1,5 +1,6 @@
 FROM node:22.14.0-alpine AS backend-deps
 
+RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@10.33.3 --activate
 WORKDIR /app/back
 

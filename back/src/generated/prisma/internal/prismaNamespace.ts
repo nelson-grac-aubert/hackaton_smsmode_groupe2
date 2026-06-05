@@ -601,16 +601,13 @@ export const OtpAppScalarFieldEnum = {
   codeLength: 'codeLength',
   maxAttempts: 'maxAttempts',
   resendCooldown: 'resendCooldown',
-  smsFallback: 'smsFallback',
-  fallbackAfter: 'fallbackAfter',
   oneTapEnabled: 'oneTapEnabled',
   verifyRedirectUrl: 'verifyRedirectUrl',
+  otpMode: 'otpMode',
   senderLabel: 'senderLabel',
-  brandColor: 'brandColor',
   logoUrl: 'logoUrl',
   cardTitle: 'cardTitle',
   messageTemplate: 'messageTemplate',
-  locale: 'locale',
   allowedCountries: 'allowedCountries',
   rateLimitPhone: 'rateLimitPhone',
   rateLimitIp: 'rateLimitIp',
@@ -629,6 +626,7 @@ export const OtpTransactionScalarFieldEnum = {
   codeHash: 'codeHash',
   tapToken: 'tapToken',
   tapUsed: 'tapUsed',
+  promptDigit: 'promptDigit',
   status: 'status',
   attempts: 'attempts',
   channel: 'channel',
@@ -702,6 +700,20 @@ export type ListIntFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel,
  * Reference to a field of type 'Boolean'
  */
 export type BooleanFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'Boolean'>
+    
+
+
+/**
+ * Reference to a field of type 'OtpMode'
+ */
+export type EnumOtpModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OtpMode'>
+    
+
+
+/**
+ * Reference to a field of type 'OtpMode[]'
+ */
+export type ListEnumOtpModeFieldRefInput<$PrismaModel> = FieldRefInputType<$PrismaModel, 'OtpMode[]'>
     
 
 

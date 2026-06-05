@@ -2,7 +2,6 @@ import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import {
   IsArray,
   IsBoolean,
-  IsHexColor,
   IsISO31661Alpha2,
   IsInt,
   IsOptional,
@@ -11,7 +10,9 @@ import {
   Max,
   Min,
   IsEmail,
+  IsEnum,
 } from 'class-validator';
+import { OtpMode } from '../../../../generated/prisma/enums';
 
 export class CreateOtpAppDto {
   @ApiProperty({ example: 'code4sud' })
@@ -52,18 +53,12 @@ export class CreateOtpAppDto {
   @ApiPropertyOptional({ default: true })
   @IsOptional()
   @IsBoolean()
-  smsFallback?: boolean;
-
-  @ApiPropertyOptional({ default: 20 })
-  @IsOptional()
-  @IsInt()
-  @Min(0)
-  fallbackAfter?: number;
-
-  @ApiPropertyOptional({ default: true })
-  @IsOptional()
-  @IsBoolean()
   oneTapEnabled?: boolean;
+
+  @ApiPropertyOptional({ enum: OtpMode, default: OtpMode.CLASSIC })
+  @IsOptional()
+  @IsEnum(OtpMode)
+  otpMode?: OtpMode;
 
   @ApiProperty({ example: 'https://app.code4sud.fr/auth/callback' })
   @IsUrl({ require_tld: false })
@@ -73,11 +68,6 @@ export class CreateOtpAppDto {
   @IsOptional()
   @IsString()
   senderLabel?: string;
-
-  @ApiPropertyOptional({ default: '#0F6E56', example: '#111111' })
-  @IsOptional()
-  @IsHexColor()
-  brandColor?: string;
 
   @ApiPropertyOptional({ example: 'https://cdn.code4sud.fr/logo.png' })
   @IsOptional()
@@ -90,16 +80,11 @@ export class CreateOtpAppDto {
   cardTitle?: string;
 
   @ApiPropertyOptional({
-    default: 'Votre code est {{code}}, valable {{ttl}} min.',
+    default: 'Votre code {{brand}} est valable {{ttl}} min.',
   })
   @IsOptional()
   @IsString()
   messageTemplate?: string;
-
-  @ApiPropertyOptional({ default: 'fr', example: 'fr' })
-  @IsOptional()
-  @IsString()
-  locale?: string;
 
   @ApiPropertyOptional({ type: [String], default: [], example: ['FR', 'BE'] })
   @IsOptional()

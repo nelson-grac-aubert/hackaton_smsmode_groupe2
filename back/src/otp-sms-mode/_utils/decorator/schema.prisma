@@ -46,8 +46,8 @@ model OtpTransaction {
   phoneHash   String
   sessionId   String
   codeHash    String
-  tapToken    String? @unique
-  tapUsed     Boolean @default(false)
+  tapToken    String?  @unique
+  tapUsed     Boolean  @default(false)
   promptDigit Int?
 
   status   OtpStatus @default(PENDING)

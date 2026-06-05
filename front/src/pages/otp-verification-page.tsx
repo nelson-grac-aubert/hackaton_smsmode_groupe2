@@ -1,55 +1,70 @@
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import CheckoutHeader from '../components/CheckoutHeader';
 
+const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1';
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 59;
-const MASKED_PHONE = '06 •• •• •• 81';
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1';
 
+type OtpMode = 'CLASSIC' | 'GOOGLE_PROMPT';
 type Step = 'payment' | 'verification' | 'confirmation';
 type ErrorSeverity = 'warning' | 'error' | 'fatal';
 
-interface VerifyError {
+type VerifyError = {
   message: string;
   severity: ErrorSeverity;
-}
+};
+
+type VerificationState = {
+  apiKey?: string;
+  challengeId?: string;
+  debugCode?: string;
+  mode?: OtpMode;
+  phoneNumber?: string;
+  promptDigit?: number;
+};
 
 const steps: Step[] = ['payment', 'verification', 'confirmation'];
 const stepLabels: Record<Step, string> = {
   payment: 'Paiement',
-  verification: 'Vérification',
+  verification: 'Verification',
   confirmation: 'Confirmation',
 };
 
-// Maps API error reasons to user-friendly French messages
 function parseVerifyError(reason: string, remainingAttempts?: number): VerifyError {
   switch (reason) {
     case 'INVALID_CODE':
       return {
-        message: remainingAttempts !== undefined
-          ? `Code incorrect — il vous reste ${remainingAttempts} tentative${remainingAttempts > 1 ? 's' : ''}.`
-          : 'Code incorrect, veuillez réessayer.',
+        message:
+          remainingAttempts !== undefined
+            ? `Code incorrect. Il reste ${remainingAttempts} tentative(s).`
+            : 'Code incorrect, veuillez reessayer.',
         severity: 'warning',
       };
     case 'BLOCKED':
       return {
-        message: 'Trop de tentatives incorrectes. Veuillez recommencer depuis le début.',
+        message: 'Trop de tentatives incorrectes. Recommencez depuis le debut.',
         severity: 'fatal',
       };
     case 'EXPIRED':
       return {
-        message: 'Ce code a expiré. Veuillez en demander un nouveau.',
+        message: 'Ce challenge a expire. Demandez un nouveau code.',
         severity: 'fatal',
       };
     case 'NOT_FOUND':
       return {
-        message: 'Session introuvable. Veuillez recommencer depuis le début.',
+        message: 'Challenge introuvable. Recommencez depuis le debut.',
+        severity: 'fatal',
+      };
+    case 'REPORTED':
+      return {
+        message: "La transaction a ete signalee comme suspecte.",
         severity: 'fatal',
       };
     default:
       return {
-        message: 'Une erreur est survenue, veuillez réessayer.',
+        message: 'Une erreur est survenue, veuillez reessayer.',
         severity: 'error',
       };
   }
@@ -57,14 +72,20 @@ function parseVerifyError(reason: string, remainingAttempts?: number): VerifyErr
 
 function ProgressStepper({ current }: { current: Step }) {
   return (
-    <nav className="stepper" aria-label="Étapes du paiement">
+    <nav className="stepper" aria-label="Etapes du paiement">
       {steps.map((step) => {
         const idx = steps.indexOf(step);
         const currentIdx = steps.indexOf(current);
         const isDone = idx < currentIdx;
         const isActive = step === current;
+
         return (
-          <div key={step} className={`stepper__item ${isActive ? 'stepper__item--active' : ''} ${isDone ? 'stepper__item--done' : ''}`}>
+          <div
+            key={step}
+            className={`stepper__item ${isActive ? 'stepper__item--active' : ''} ${
+              isDone ? 'stepper__item--done' : ''
+            }`}
+          >
             <span className="stepper__label">{stepLabels[step]}</span>
             <div className="stepper__line" />
           </div>
@@ -78,38 +99,44 @@ function OtpInput({ onChange }: { onChange: (code: string) => void }) {
   const [values, setValues] = useState<string[]>(Array(OTP_LENGTH).fill(''));
   const refs = useRef<(HTMLInputElement | null)[]>([]);
 
-  const focusNext = (idx: number) => refs.current[idx + 1]?.focus();
-  const focusPrev = (idx: number) => refs.current[idx - 1]?.focus();
+  const handleChange = useCallback(
+    (idx: number, val: string) => {
+      if (!/^\d?$/.test(val)) return;
+      const next = [...values];
+      next[idx] = val;
+      setValues(next);
+      onChange(next.join(''));
+      if (val) refs.current[idx + 1]?.focus();
+    },
+    [values, onChange],
+  );
 
-  const handleChange = useCallback((idx: number, val: string) => {
-    if (!/^\d?$/.test(val)) return;
-    const next = [...values];
-    next[idx] = val;
-    setValues(next);
-    onChange(next.join(''));
-    if (val) focusNext(idx);
-  }, [values, onChange]);
-
-  const handleKeyDown = useCallback((idx: number, e: React.KeyboardEvent) => {
-    if (e.key === 'Backspace' && !values[idx]) focusPrev(idx);
-  }, [values]);
-
-  const handlePaste = useCallback((e: React.ClipboardEvent) => {
-    e.preventDefault();
-    const pasted = e.clipboardData.getData('text').replace(/\D/g, '').slice(0, OTP_LENGTH);
-    const next = Array(OTP_LENGTH).fill('');
-    pasted.split('').forEach((c, i) => (next[i] = c));
-    setValues(next);
-    onChange(next.join(''));
-    refs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
-  }, [onChange]);
+  const handlePaste = useCallback(
+    (event: React.ClipboardEvent) => {
+      event.preventDefault();
+      const pasted = event.clipboardData
+        .getData('text')
+        .replace(/\D/g, '')
+        .slice(0, OTP_LENGTH);
+      const next = Array(OTP_LENGTH).fill('');
+      pasted.split('').forEach((char, idx) => {
+        next[idx] = char;
+      });
+      setValues(next);
+      onChange(next.join(''));
+      refs.current[Math.min(pasted.length, OTP_LENGTH - 1)]?.focus();
+    },
+    [onChange],
+  );
 
   return (
     <div className="otp-grid" onPaste={handlePaste} role="group" aria-label="Code OTP">
       {values.map((val, idx) => (
         <input
           key={idx}
-          ref={(el) => { refs.current[idx] = el; }}
+          ref={(el) => {
+            refs.current[idx] = el;
+          }}
           className={`otp-cell ${val ? 'otp-cell--filled' : ''}`}
           type="text"
           inputMode="numeric"
@@ -117,8 +144,10 @@ function OtpInput({ onChange }: { onChange: (code: string) => void }) {
           value={val}
           autoFocus={idx === 0}
           aria-label={`Chiffre ${idx + 1}`}
-          onChange={(e) => handleChange(idx, e.target.value)}
-          onKeyDown={(e) => handleKeyDown(idx, e)}
+          onChange={(event) => handleChange(idx, event.target.value)}
+          onKeyDown={(event) => {
+            if (event.key === 'Backspace' && !values[idx]) refs.current[idx - 1]?.focus();
+          }}
         />
       ))}
     </div>
@@ -129,27 +158,26 @@ function CountdownTimer({ onExpire }: { onExpire: () => void }) {
   const [seconds, setSeconds] = useState(TIMER_SECONDS);
 
   useEffect(() => {
-    if (seconds <= 0) { onExpire(); return; }
-    const id = setTimeout(() => setSeconds((s) => s - 1), 1000);
-    return () => clearTimeout(id);
+    if (seconds <= 0) {
+      onExpire();
+      return;
+    }
+    const id = window.setTimeout(() => setSeconds((current) => current - 1), 1000);
+    return () => window.clearTimeout(id);
   }, [seconds, onExpire]);
 
   if (seconds <= 0) return null;
   return (
-    <span className="timer">({Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')})</span>
+    <span className="timer">
+      ({Math.floor(seconds / 60)}:{String(seconds % 60).padStart(2, '0')})
+    </span>
   );
 }
 
-// Inline error banner with icon and severity-based styling
 function ErrorBanner({ verifyError }: { verifyError: VerifyError }) {
-  const icons: Record<ErrorSeverity, string> = {
-    warning: 'WARNING',
-    error: 'ERROR',
-    fatal: 'FATAL',
-  };
   return (
     <div className={`error-banner error-banner--${verifyError.severity}`} role="alert">
-      <span className="error-banner__icon">{icons[verifyError.severity]}</span>
+      <span className="error-banner__icon">{verifyError.severity.toUpperCase()}</span>
       <span>{verifyError.message}</span>
     </div>
   );
@@ -159,10 +187,17 @@ function SecurityBadge() {
   return (
     <div className="security">
       <div className="security__row">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" className="security__icon" aria-hidden="true">
-          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z"/>
+        <svg
+          width="14"
+          height="14"
+          viewBox="0 0 24 24"
+          fill="currentColor"
+          className="security__icon"
+          aria-hidden="true"
+        >
+          <path d="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
         </svg>
-        <span className="security__label">Transaction chiffrée<br />de bout en bout</span>
+        <span className="security__label">Transaction chiffree de bout en bout</span>
       </div>
     </div>
   );
@@ -173,16 +208,20 @@ function ConfirmationScreen() {
     <div className="confirm">
       <div className="confirm__icon" aria-hidden="true">
         <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-          <circle cx="24" cy="24" r="23" stroke="currentColor" strokeWidth="1"/>
-          <path d="M14 24l7 7 13-13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          <circle cx="24" cy="24" r="23" stroke="currentColor" strokeWidth="1" />
+          <path
+            d="M14 24l7 7 13-13"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
         </svg>
       </div>
-      <h2 className="confirm__title">Commande validée</h2>
+      <h2 className="confirm__title">Commande validee</h2>
       <p className="confirm__body">
-        Merci pour votre achat. Votre paiement a bien été accepté et votre commande est en cours de préparation.
-      </p>
-      <p className="confirm__email">
-        Un e-mail de confirmation vous sera envoyé dans quelques instants.
+        Merci pour votre achat. Le paiement est confirme et la commande est en
+        cours de preparation.
       </p>
     </div>
   );
@@ -191,11 +230,13 @@ function ConfirmationScreen() {
 export default function OtpVerificationPage() {
   const location = useLocation();
   const navigate = useNavigate();
-
-  // challengeId is passed by SendCodePage after a successful generate
-  const state = location.state as { phoneNumber?: string; challengeId?: string } | null;
-  const phoneNumber = state?.phoneNumber;
+  const state = location.state as VerificationState | null;
+  const apiKey = state?.apiKey;
   const challengeId = state?.challengeId;
+  const debugCode = state?.debugCode;
+  const mode = state?.mode ?? 'CLASSIC';
+  const phoneNumber = state?.phoneNumber;
+  const promptDigit = state?.promptDigit;
 
   const [code, setCode] = useState('');
   const [canResend, setCanResend] = useState(false);
@@ -203,10 +244,30 @@ export default function OtpVerificationPage() {
   const [confirmed, setConfirmed] = useState(false);
   const [verifyError, setVerifyError] = useState<VerifyError | null>(null);
 
-  // Fatal errors (blocked, expired) disable the submit button
+  const isPromptMode = mode === 'GOOGLE_PROMPT';
   const isFatal = verifyError?.severity === 'fatal';
-
   const handleExpire = useCallback(() => setCanResend(true), []);
+
+  useEffect(() => {
+    if (!isPromptMode || !challengeId || !apiKey || confirmed) return;
+
+    const id = window.setInterval(async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/otp/status/${challengeId}`, {
+          headers: { 'x-api-key': apiKey },
+        });
+        const data = await response.json().catch(() => ({}));
+        if (data.status === 'VERIFIED') setConfirmed(true);
+        if (['EXPIRED', 'BLOCKED', 'REPORTED'].includes(data.status)) {
+          setVerifyError(parseVerifyError(data.status));
+        }
+      } catch {
+        // Best-effort polling only; the demo button still works.
+      }
+    }, 2000);
+
+    return () => window.clearInterval(id);
+  }, [apiKey, challengeId, confirmed, isPromptMode]);
 
   const handleResend = () => {
     setCanResend(false);
@@ -215,30 +276,53 @@ export default function OtpVerificationPage() {
     navigate('/send-code', { state: { phoneNumber } });
   };
 
+  const verifyCode = async (submittedCode: string) => {
+    if (!challengeId || !apiKey) {
+      setVerifyError({
+        message: 'Challenge OTP incomplet. Veuillez recommencer.',
+        severity: 'fatal',
+      });
+      return;
+    }
+
+    setVerifyError(null);
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/otp/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'x-api-key': apiKey },
+        body: JSON.stringify({ challengeId, code: submittedCode }),
+      });
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok || !data.valid) {
+        setVerifyError(parseVerifyError(data.reason, data.remainingAttempts));
+        return;
+      }
+
+      setConfirmed(true);
+    } catch {
+      setVerifyError({ message: 'Erreur reseau, veuillez reessayer.', severity: 'error' });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async () => {
     if (code.length < OTP_LENGTH) {
       setVerifyError({ message: 'Veuillez saisir les 6 chiffres.', severity: 'warning' });
       return;
     }
-    setVerifyError(null);
-    setIsSubmitting(true);
-    try {
-      const response = await fetch(`${API_BASE_URL}/otp-sms-mode/verify`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ challengeId, code }),
-      });
-      const data = await response.json();
-      if (!response.ok || !data.valid) {
-        setVerifyError(parseVerifyError(data.reason, data.remainingAttempts));
-        return;
-      }
-      setConfirmed(true);
-    } catch {
-      setVerifyError({ message: 'Erreur réseau, veuillez réessayer.', severity: 'error' });
-    } finally {
-      setIsSubmitting(false);
+    await verifyCode(code);
+  };
+
+  const handlePromptPress = async () => {
+    if (promptDigit === undefined) {
+      setVerifyError({ message: 'Chiffre de validation introuvable.', severity: 'fatal' });
+      return;
     }
+    await verifyCode(String(promptDigit));
   };
 
   return (
@@ -254,21 +338,51 @@ export default function OtpVerificationPage() {
           ) : (
             <>
               <section className="hero">
-                <h1 className="hero__title">Vérification de sécurité</h1>
-                <p className="hero__body">
-                  Un code de confirmation a été envoyé à votre numéro se terminant par{' '}
-                  <strong className="hero__phone">{phoneNumber ?? MASKED_PHONE}</strong>.{' '}
-                  Veuillez le saisir ci-dessous pour valider votre achat.
-                </p>
+                <h1 className="hero__title">Verification de securite</h1>
+                {isPromptMode ? (
+                  <p className="hero__body">
+                    Un message avec 3 boutons a ete envoye au{' '}
+                    <strong className="hero__phone">{phoneNumber ?? 'telephone client'}</strong>.
+                    Appuyez sur le chiffre affiche ci-dessous pour valider.
+                  </p>
+                ) : (
+                  <p className="hero__body">
+                    Un code de confirmation a ete envoye au{' '}
+                    <strong className="hero__phone">{phoneNumber ?? 'telephone client'}</strong>.
+                    Veuillez le saisir ci-dessous pour valider votre achat.
+                  </p>
+                )}
               </section>
 
               <div className="card">
-                <OtpInput onChange={setCode} />
+                {isPromptMode ? (
+                  <div className="prompt-card">
+                    <span className="prompt-card__label">Chiffre a selectionner</span>
+                    <strong className="prompt-card__digit">{promptDigit ?? '-'}</strong>
+                    <p>
+                      Sur le message RCS recu, choisissez le bouton portant ce
+                      chiffre. Le bouton ci-dessous simule cet appui pour la demo.
+                    </p>
+                  </div>
+                ) : (
+                  <>
+                    <OtpInput onChange={setCode} />
+                    {debugCode ? (
+                      <div className="demo-code">
+                        <span>Mode demo sans provider SMSMode</span>
+                        <strong>Code recu : {debugCode}</strong>
+                        <button type="button" onClick={() => verifyCode(debugCode)}>
+                          Utiliser ce code
+                        </button>
+                      </div>
+                    ) : null}
+                  </>
+                )}
 
                 {verifyError && <ErrorBanner verifyError={verifyError} />}
 
                 <p className="resend-row">
-                  Vous n'avez pas reçu le code ?{' '}
+                  Vous n'avez pas recu le code ?{' '}
                   <button
                     className={`resend-btn ${canResend ? '' : 'resend-btn--disabled'}`}
                     onClick={canResend ? handleResend : undefined}
@@ -281,16 +395,20 @@ export default function OtpVerificationPage() {
 
                 <button
                   className={`cta ${isSubmitting ? 'cta--loading' : ''}`}
-                  onClick={handleSubmit}
+                  onClick={isPromptMode ? handlePromptPress : handleSubmit}
                   disabled={isSubmitting || isFatal}
                   aria-busy={isSubmitting}
                 >
                   {isSubmitting ? (
                     <span className="cta__spinner-row">
                       <span className="spinner" aria-hidden="true" />
-                      Vérification…
+                      Verification...
                     </span>
-                  ) : 'Confirmer le paiement'}
+                  ) : isPromptMode ? (
+                    `J'ai appuye sur ${promptDigit ?? '-'}`
+                  ) : (
+                    'Confirmer le paiement'
+                  )}
                 </button>
 
                 <SecurityBadge />
@@ -301,7 +419,7 @@ export default function OtpVerificationPage() {
 
         <footer className="footer">
           <span className="footer__copy">© 2024 Digital Atelier. All Rights Reserved.</span>
-          <nav className="footer__nav" aria-label="Liens légaux">
+          <nav className="footer__nav" aria-label="Liens legaux">
             <a href="#" className="footer__link">Secure Encryption</a>
             <a href="#" className="footer__link">Privacy Policy</a>
             <a href="#" className="footer__link">Terms of Service</a>
@@ -319,12 +437,9 @@ const CSS = `
     --surface: #fbf9f9;
     --surface-low: #f5f3f3;
     --surface-container: #efeded;
-    --surface-high: #e9e8e7;
-    --surface-highest: #e3e2e2;
     --surface-white: #ffffff;
     --on-surface: #1b1c1c;
     --on-surface-variant: #444748;
-    --outline: #747878;
     --outline-variant: #c4c7c7;
     --primary: #000000;
     --on-primary: #ffffff;
@@ -335,20 +450,12 @@ const CSS = `
     --warning-bg: #fff8ee;
     --fatal: #6b0000;
     --fatal-bg: #fff0f0;
-
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', system-ui, sans-serif;
-
-    --radius-sm: 0.125rem;
-    --radius: 0.25rem;
-    --radius-lg: 0.5rem;
-
     --space-sm: 8px;
     --space-md: 16px;
     --space-lg: 32px;
     --space-xl: 64px;
-    --margin-mobile: 20px;
-    --margin-desktop: 64px;
   }
 
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -358,8 +465,6 @@ const CSS = `
     background: var(--surface);
     color: var(--on-surface);
     font-family: var(--font-body);
-    font-size: 16px;
-    line-height: 1.5;
     display: flex;
     flex-direction: column;
     -webkit-font-smoothing: antialiased;
@@ -373,40 +478,28 @@ const CSS = `
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 0 var(--margin-mobile);
+    padding: 0 20px;
     background: var(--surface);
     border-bottom: 1px solid var(--outline-variant);
   }
-  .topbar__left { display: flex; align-items: center; gap: 12px; }
-  .topbar__back {
-    display: flex; align-items: center; justify-content: center;
-    background: none; border: none; cursor: pointer;
-    color: var(--primary); padding: 4px;
-    transition: opacity 0.15s;
-  }
-  .topbar__back:hover { opacity: 0.6; }
+  .topbar__brand-group { display: flex; align-items: center; gap: 8px; }
   .topbar__brand {
     font-family: var(--font-display);
     font-size: 20px;
     font-weight: 600;
     color: var(--primary);
-    letter-spacing: -0.01em;
   }
+  .brand-logo { color: var(--primary); flex-shrink: 0; }
 
   .main {
     flex: 1;
-    padding: var(--space-lg) var(--margin-mobile) var(--space-xl);
+    padding: var(--space-lg) 20px var(--space-xl);
     max-width: 600px;
     width: 100%;
     margin: 0 auto;
   }
 
-  .stepper {
-    display: flex;
-    align-items: flex-end;
-    gap: 0;
-    margin-bottom: var(--space-lg);
-  }
+  .stepper { display: flex; align-items: flex-end; margin-bottom: var(--space-lg); }
   .stepper__item {
     flex: 1;
     display: flex;
@@ -415,15 +508,13 @@ const CSS = `
     gap: 6px;
     opacity: 0.35;
   }
-  .stepper__item--done,
-  .stepper__item--active { opacity: 1; }
+  .stepper__item--done, .stepper__item--active { opacity: 1; }
   .stepper__label {
     font-size: 9px;
     font-weight: 600;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--on-surface-variant);
-    white-space: nowrap;
   }
   .stepper__item--active .stepper__label { color: var(--primary); }
   .stepper__line { height: 1px; width: 100%; background: var(--outline-variant); }
@@ -436,6 +527,7 @@ const CSS = `
     font-size: 32px;
     font-weight: 500;
     line-height: 1.25;
+    letter-spacing: 0;
     color: var(--primary);
     margin-bottom: var(--space-md);
   }
@@ -451,9 +543,9 @@ const CSS = `
   .card {
     background: var(--surface-white);
     border: 1px solid var(--outline-variant);
-    border-radius: var(--radius-lg);
+    border-radius: 8px;
     padding: var(--space-lg) var(--space-md);
-    box-shadow: 0 10px 30px rgba(26,26,26,0.05);
+    box-shadow: 0 10px 30px rgba(26, 26, 26, 0.05);
   }
 
   .otp-grid {
@@ -461,7 +553,6 @@ const CSS = `
     justify-content: center;
     gap: clamp(4px, 2vw, 8px);
     margin-bottom: var(--space-lg);
-    padding: 0 4px;
   }
   .otp-cell {
     width: clamp(36px, 12vw, 48px);
@@ -469,54 +560,94 @@ const CSS = `
     text-align: center;
     font-family: var(--font-display);
     font-size: clamp(18px, 5vw, 24px);
-    font-weight: 500;
     border: 1px solid var(--outline-variant);
-    border-radius: var(--radius);
+    border-radius: 4px;
     background: var(--surface-low);
     color: var(--primary);
-    transition: border-color 0.15s, background 0.15s;
     outline: none;
-    min-width: 0;
   }
-  .otp-cell:focus {
+  .otp-cell:focus,
+  .otp-cell--filled {
     border-color: var(--primary);
-    border-width: 2px;
     background: var(--surface-white);
   }
-  .otp-cell--filled { background: var(--surface-white); border-color: var(--primary); }
+
+  .prompt-card {
+    margin-bottom: var(--space-lg);
+    padding: 20px;
+    border: 1px solid var(--outline-variant);
+    border-radius: 8px;
+    display: grid;
+    gap: 10px;
+    text-align: center;
+    background: var(--surface-low);
+  }
+  .prompt-card__label {
+    color: var(--on-surface-variant);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+  .prompt-card__digit {
+    font-family: var(--font-display);
+    font-size: 84px;
+    line-height: 1;
+    color: var(--primary);
+  }
+  .prompt-card p {
+    color: var(--on-surface-variant);
+    font-size: 14px;
+    line-height: 20px;
+  }
+
+  .demo-code {
+    margin: 0 auto var(--space-lg);
+    padding: 14px;
+    border: 1px solid var(--outline-variant);
+    border-radius: 8px;
+    display: grid;
+    gap: 8px;
+    text-align: center;
+    background: var(--surface-low);
+  }
+  .demo-code span {
+    color: var(--on-surface-variant);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .demo-code strong {
+    font-family: var(--font-display);
+    font-size: 24px;
+    color: var(--primary);
+  }
+  .demo-code button {
+    justify-self: center;
+    background: transparent;
+    border: none;
+    color: var(--primary);
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
 
   .error-banner {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    padding: 12px 16px;
-    border-radius: var(--radius);
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.5;
     margin-bottom: var(--space-md);
-    animation: slideDown 0.2s ease both;
+    border-radius: 4px;
+    padding: 12px 14px;
+    display: flex;
+    gap: 10px;
+    font-size: 13px;
+    line-height: 20px;
   }
-  @keyframes slideDown {
-    from { opacity: 0; transform: translateY(-6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .error-banner--warning {
-    background: var(--warning-bg);
-    color: var(--warning);
-    border: 1px solid #f5c97a;
-  }
-  .error-banner--error {
-    background: var(--error-bg);
-    color: var(--error);
-    border: 1px solid #f5a0a0;
-  }
-  .error-banner--fatal {
-    background: var(--fatal-bg);
-    color: var(--fatal);
-    border: 1px solid #e08080;
-  }
-  .error-banner__icon { flex-shrink: 0; font-size: 15px; }
+  .error-banner__icon { font-weight: 700; }
+  .error-banner--warning { color: var(--warning); background: var(--warning-bg); }
+  .error-banner--error { color: var(--error); background: var(--error-bg); }
+  .error-banner--fatal { color: var(--fatal); background: var(--fatal-bg); }
 
   .resend-row {
     text-align: center;
@@ -529,13 +660,11 @@ const CSS = `
     background: none;
     border: none;
     cursor: pointer;
-    font-family: var(--font-body);
     font-size: 14px;
     font-weight: 600;
     color: var(--primary);
     text-decoration: underline;
     text-underline-offset: 2px;
-    transition: opacity 0.15s;
   }
   .resend-btn--disabled { opacity: 0.4; cursor: default; text-decoration: none; }
   .timer { color: var(--on-surface-variant); opacity: 0.7; font-size: 13px; }
@@ -545,32 +674,36 @@ const CSS = `
     background: var(--primary);
     color: var(--on-primary);
     border: none;
-    border-radius: var(--radius);
+    border-radius: 4px;
     padding: 18px 24px;
-    font-family: var(--font-body);
     font-size: 12px;
     font-weight: 600;
     letter-spacing: 0.1em;
     text-transform: uppercase;
     cursor: pointer;
-    transition: opacity 0.15s, transform 0.1s;
   }
   .cta:hover { opacity: 0.85; }
-  .cta:active { transform: scale(0.98); }
-  .cta:disabled { opacity: 0.4; cursor: not-allowed; }
-  .cta--loading { opacity: 0.7; }
+  .cta:disabled { opacity: 0.6; cursor: not-allowed; }
+  .cta__spinner-row { display: flex; align-items: center; justify-content: center; gap: 10px; }
+  .spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255,255,255,0.3);
+    border-top-color: #fff;
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
 
   .security {
     margin-top: var(--space-lg);
     padding-top: var(--space-md);
     border-top: 1px solid var(--outline-variant);
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 12px;
+    justify-content: center;
   }
   .security__row { display: flex; align-items: center; gap: 6px; }
-  .security__icon { color: var(--secondary); flex-shrink: 0; }
+  .security__icon { color: var(--secondary); }
   .security__label {
     font-size: 10px;
     font-weight: 600;
@@ -579,35 +712,12 @@ const CSS = `
     color: var(--on-surface-variant);
   }
 
-  .cta__spinner-row {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 10px;
-  }
-  .spinner {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    border: 2px solid rgba(255,255,255,0.3);
-    border-top-color: #ffffff;
-    border-radius: 50%;
-    animation: spin 0.7s linear infinite;
-    flex-shrink: 0;
-  }
-  @keyframes spin { to { transform: rotate(360deg); } }
-
   .confirm {
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
     padding-top: var(--space-lg);
-    animation: fadeUp 0.5s ease both;
-  }
-  @keyframes fadeUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to   { opacity: 1; transform: translateY(0); }
   }
   .confirm__icon { color: var(--primary); margin-bottom: var(--space-lg); }
   .confirm__title {
@@ -622,19 +732,12 @@ const CSS = `
     color: var(--on-surface-variant);
     line-height: 1.6;
     max-width: 380px;
-    margin-bottom: var(--space-sm);
-  }
-  .confirm__email {
-    font-size: 14px;
-    color: var(--on-surface-variant);
-    opacity: 0.7;
-    margin-bottom: var(--space-xl);
   }
 
   .footer {
     background: var(--surface-low);
     border-top: 1px solid var(--outline-variant);
-    padding: var(--space-lg) var(--margin-mobile);
+    padding: var(--space-lg) 20px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -649,26 +752,16 @@ const CSS = `
     color: var(--primary);
   }
   .footer__nav { display: flex; flex-wrap: wrap; justify-content: center; gap: 20px; }
-  .footer__link {
-    font-size: 14px;
-    color: var(--on-surface-variant);
-    text-decoration: none;
-    transition: color 0.15s;
-  }
-  .footer__link:hover { color: var(--primary); }
+  .footer__link { font-size: 14px; color: var(--on-surface-variant); text-decoration: none; }
 
   @media (min-width: 768px) {
-    .topbar { padding: 0 var(--margin-desktop); }
+    .topbar { padding: 0 64px; }
     .topbar__brand { font-size: 28px; }
-    .main { padding: var(--space-xl) var(--margin-desktop); }
+    .main { padding: var(--space-xl) 64px; }
     .hero__title { font-size: 42px; }
     .otp-cell { width: 64px; height: 80px; font-size: 28px; }
     .otp-grid { gap: 12px; }
     .card { padding: var(--space-xl); }
-    .footer {
-      flex-direction: row;
-      justify-content: space-between;
-      padding: var(--space-lg) var(--margin-desktop);
-    }
+    .footer { flex-direction: row; justify-content: space-between; padding: var(--space-lg) 64px; }
   }
 `;

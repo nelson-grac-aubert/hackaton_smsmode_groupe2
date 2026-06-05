@@ -27,10 +27,12 @@ export type AggregateOtpTransaction = {
 }
 
 export type OtpTransactionAvgAggregateOutputType = {
+  promptDigit: number | null
   attempts: number | null
 }
 
 export type OtpTransactionSumAggregateOutputType = {
+  promptDigit: number | null
   attempts: number | null
 }
 
@@ -42,6 +44,7 @@ export type OtpTransactionMinAggregateOutputType = {
   codeHash: string | null
   tapToken: string | null
   tapUsed: boolean | null
+  promptDigit: number | null
   status: $Enums.OtpStatus | null
   attempts: number | null
   channel: $Enums.Channel | null
@@ -58,6 +61,7 @@ export type OtpTransactionMaxAggregateOutputType = {
   codeHash: string | null
   tapToken: string | null
   tapUsed: boolean | null
+  promptDigit: number | null
   status: $Enums.OtpStatus | null
   attempts: number | null
   channel: $Enums.Channel | null
@@ -74,6 +78,7 @@ export type OtpTransactionCountAggregateOutputType = {
   codeHash: number
   tapToken: number
   tapUsed: number
+  promptDigit: number
   status: number
   attempts: number
   channel: number
@@ -85,10 +90,12 @@ export type OtpTransactionCountAggregateOutputType = {
 
 
 export type OtpTransactionAvgAggregateInputType = {
+  promptDigit?: true
   attempts?: true
 }
 
 export type OtpTransactionSumAggregateInputType = {
+  promptDigit?: true
   attempts?: true
 }
 
@@ -100,6 +107,7 @@ export type OtpTransactionMinAggregateInputType = {
   codeHash?: true
   tapToken?: true
   tapUsed?: true
+  promptDigit?: true
   status?: true
   attempts?: true
   channel?: true
@@ -116,6 +124,7 @@ export type OtpTransactionMaxAggregateInputType = {
   codeHash?: true
   tapToken?: true
   tapUsed?: true
+  promptDigit?: true
   status?: true
   attempts?: true
   channel?: true
@@ -132,6 +141,7 @@ export type OtpTransactionCountAggregateInputType = {
   codeHash?: true
   tapToken?: true
   tapUsed?: true
+  promptDigit?: true
   status?: true
   attempts?: true
   channel?: true
@@ -235,6 +245,7 @@ export type OtpTransactionGroupByOutputType = {
   codeHash: string
   tapToken: string | null
   tapUsed: boolean
+  promptDigit: number | null
   status: $Enums.OtpStatus
   attempts: number
   channel: $Enums.Channel
@@ -274,6 +285,7 @@ export type OtpTransactionWhereInput = {
   codeHash?: Prisma.StringFilter<"OtpTransaction"> | string
   tapToken?: Prisma.StringNullableFilter<"OtpTransaction"> | string | null
   tapUsed?: Prisma.BoolFilter<"OtpTransaction"> | boolean
+  promptDigit?: Prisma.IntNullableFilter<"OtpTransaction"> | number | null
   status?: Prisma.EnumOtpStatusFilter<"OtpTransaction"> | $Enums.OtpStatus
   attempts?: Prisma.IntFilter<"OtpTransaction"> | number
   channel?: Prisma.EnumChannelFilter<"OtpTransaction"> | $Enums.Channel
@@ -291,6 +303,7 @@ export type OtpTransactionOrderByWithRelationInput = {
   codeHash?: Prisma.SortOrder
   tapToken?: Prisma.SortOrderInput | Prisma.SortOrder
   tapUsed?: Prisma.SortOrder
+  promptDigit?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   channel?: Prisma.SortOrder
@@ -311,6 +324,7 @@ export type OtpTransactionWhereUniqueInput = Prisma.AtLeast<{
   sessionId?: Prisma.StringFilter<"OtpTransaction"> | string
   codeHash?: Prisma.StringFilter<"OtpTransaction"> | string
   tapUsed?: Prisma.BoolFilter<"OtpTransaction"> | boolean
+  promptDigit?: Prisma.IntNullableFilter<"OtpTransaction"> | number | null
   status?: Prisma.EnumOtpStatusFilter<"OtpTransaction"> | $Enums.OtpStatus
   attempts?: Prisma.IntFilter<"OtpTransaction"> | number
   channel?: Prisma.EnumChannelFilter<"OtpTransaction"> | $Enums.Channel
@@ -328,6 +342,7 @@ export type OtpTransactionOrderByWithAggregationInput = {
   codeHash?: Prisma.SortOrder
   tapToken?: Prisma.SortOrderInput | Prisma.SortOrder
   tapUsed?: Prisma.SortOrder
+  promptDigit?: Prisma.SortOrderInput | Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   channel?: Prisma.SortOrder
@@ -352,6 +367,7 @@ export type OtpTransactionScalarWhereWithAggregatesInput = {
   codeHash?: Prisma.StringWithAggregatesFilter<"OtpTransaction"> | string
   tapToken?: Prisma.StringNullableWithAggregatesFilter<"OtpTransaction"> | string | null
   tapUsed?: Prisma.BoolWithAggregatesFilter<"OtpTransaction"> | boolean
+  promptDigit?: Prisma.IntNullableWithAggregatesFilter<"OtpTransaction"> | number | null
   status?: Prisma.EnumOtpStatusWithAggregatesFilter<"OtpTransaction"> | $Enums.OtpStatus
   attempts?: Prisma.IntWithAggregatesFilter<"OtpTransaction"> | number
   channel?: Prisma.EnumChannelWithAggregatesFilter<"OtpTransaction"> | $Enums.Channel
@@ -367,6 +383,7 @@ export type OtpTransactionCreateInput = {
   codeHash: string
   tapToken?: string | null
   tapUsed?: boolean
+  promptDigit?: number | null
   status?: $Enums.OtpStatus
   attempts?: number
   channel?: $Enums.Channel
@@ -384,6 +401,7 @@ export type OtpTransactionUncheckedCreateInput = {
   codeHash: string
   tapToken?: string | null
   tapUsed?: boolean
+  promptDigit?: number | null
   status?: $Enums.OtpStatus
   attempts?: number
   channel?: $Enums.Channel
@@ -399,6 +417,7 @@ export type OtpTransactionUpdateInput = {
   codeHash?: Prisma.StringFieldUpdateOperationsInput | string
   tapToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tapUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promptDigit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumOtpStatusFieldUpdateOperationsInput | $Enums.OtpStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumChannelFieldUpdateOperationsInput | $Enums.Channel
@@ -416,6 +435,7 @@ export type OtpTransactionUncheckedUpdateInput = {
   codeHash?: Prisma.StringFieldUpdateOperationsInput | string
   tapToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tapUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promptDigit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumOtpStatusFieldUpdateOperationsInput | $Enums.OtpStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumChannelFieldUpdateOperationsInput | $Enums.Channel
@@ -432,6 +452,7 @@ export type OtpTransactionCreateManyInput = {
   codeHash: string
   tapToken?: string | null
   tapUsed?: boolean
+  promptDigit?: number | null
   status?: $Enums.OtpStatus
   attempts?: number
   channel?: $Enums.Channel
@@ -447,6 +468,7 @@ export type OtpTransactionUpdateManyMutationInput = {
   codeHash?: Prisma.StringFieldUpdateOperationsInput | string
   tapToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tapUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promptDigit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumOtpStatusFieldUpdateOperationsInput | $Enums.OtpStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumChannelFieldUpdateOperationsInput | $Enums.Channel
@@ -463,6 +485,7 @@ export type OtpTransactionUncheckedUpdateManyInput = {
   codeHash?: Prisma.StringFieldUpdateOperationsInput | string
   tapToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tapUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promptDigit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumOtpStatusFieldUpdateOperationsInput | $Enums.OtpStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumChannelFieldUpdateOperationsInput | $Enums.Channel
@@ -489,6 +512,7 @@ export type OtpTransactionCountOrderByAggregateInput = {
   codeHash?: Prisma.SortOrder
   tapToken?: Prisma.SortOrder
   tapUsed?: Prisma.SortOrder
+  promptDigit?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   channel?: Prisma.SortOrder
@@ -498,6 +522,7 @@ export type OtpTransactionCountOrderByAggregateInput = {
 }
 
 export type OtpTransactionAvgOrderByAggregateInput = {
+  promptDigit?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
 }
 
@@ -509,6 +534,7 @@ export type OtpTransactionMaxOrderByAggregateInput = {
   codeHash?: Prisma.SortOrder
   tapToken?: Prisma.SortOrder
   tapUsed?: Prisma.SortOrder
+  promptDigit?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   channel?: Prisma.SortOrder
@@ -525,6 +551,7 @@ export type OtpTransactionMinOrderByAggregateInput = {
   codeHash?: Prisma.SortOrder
   tapToken?: Prisma.SortOrder
   tapUsed?: Prisma.SortOrder
+  promptDigit?: Prisma.SortOrder
   status?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
   channel?: Prisma.SortOrder
@@ -534,6 +561,7 @@ export type OtpTransactionMinOrderByAggregateInput = {
 }
 
 export type OtpTransactionSumOrderByAggregateInput = {
+  promptDigit?: Prisma.SortOrder
   attempts?: Prisma.SortOrder
 }
 
@@ -579,6 +607,14 @@ export type OtpTransactionUncheckedUpdateManyWithoutAppNestedInput = {
   deleteMany?: Prisma.OtpTransactionScalarWhereInput | Prisma.OtpTransactionScalarWhereInput[]
 }
 
+export type NullableIntFieldUpdateOperationsInput = {
+  set?: number | null
+  increment?: number
+  decrement?: number
+  multiply?: number
+  divide?: number
+}
+
 export type EnumOtpStatusFieldUpdateOperationsInput = {
   set?: $Enums.OtpStatus
 }
@@ -594,6 +630,7 @@ export type OtpTransactionCreateWithoutAppInput = {
   codeHash: string
   tapToken?: string | null
   tapUsed?: boolean
+  promptDigit?: number | null
   status?: $Enums.OtpStatus
   attempts?: number
   channel?: $Enums.Channel
@@ -609,6 +646,7 @@ export type OtpTransactionUncheckedCreateWithoutAppInput = {
   codeHash: string
   tapToken?: string | null
   tapUsed?: boolean
+  promptDigit?: number | null
   status?: $Enums.OtpStatus
   attempts?: number
   channel?: $Enums.Channel
@@ -654,6 +692,7 @@ export type OtpTransactionScalarWhereInput = {
   codeHash?: Prisma.StringFilter<"OtpTransaction"> | string
   tapToken?: Prisma.StringNullableFilter<"OtpTransaction"> | string | null
   tapUsed?: Prisma.BoolFilter<"OtpTransaction"> | boolean
+  promptDigit?: Prisma.IntNullableFilter<"OtpTransaction"> | number | null
   status?: Prisma.EnumOtpStatusFilter<"OtpTransaction"> | $Enums.OtpStatus
   attempts?: Prisma.IntFilter<"OtpTransaction"> | number
   channel?: Prisma.EnumChannelFilter<"OtpTransaction"> | $Enums.Channel
@@ -669,6 +708,7 @@ export type OtpTransactionCreateManyAppInput = {
   codeHash: string
   tapToken?: string | null
   tapUsed?: boolean
+  promptDigit?: number | null
   status?: $Enums.OtpStatus
   attempts?: number
   channel?: $Enums.Channel
@@ -684,6 +724,7 @@ export type OtpTransactionUpdateWithoutAppInput = {
   codeHash?: Prisma.StringFieldUpdateOperationsInput | string
   tapToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tapUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promptDigit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumOtpStatusFieldUpdateOperationsInput | $Enums.OtpStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumChannelFieldUpdateOperationsInput | $Enums.Channel
@@ -699,6 +740,7 @@ export type OtpTransactionUncheckedUpdateWithoutAppInput = {
   codeHash?: Prisma.StringFieldUpdateOperationsInput | string
   tapToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tapUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promptDigit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumOtpStatusFieldUpdateOperationsInput | $Enums.OtpStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumChannelFieldUpdateOperationsInput | $Enums.Channel
@@ -714,6 +756,7 @@ export type OtpTransactionUncheckedUpdateManyWithoutAppInput = {
   codeHash?: Prisma.StringFieldUpdateOperationsInput | string
   tapToken?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   tapUsed?: Prisma.BoolFieldUpdateOperationsInput | boolean
+  promptDigit?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
   status?: Prisma.EnumOtpStatusFieldUpdateOperationsInput | $Enums.OtpStatus
   attempts?: Prisma.IntFieldUpdateOperationsInput | number
   channel?: Prisma.EnumChannelFieldUpdateOperationsInput | $Enums.Channel
@@ -732,6 +775,7 @@ export type OtpTransactionSelect<ExtArgs extends runtime.Types.Extensions.Intern
   codeHash?: boolean
   tapToken?: boolean
   tapUsed?: boolean
+  promptDigit?: boolean
   status?: boolean
   attempts?: boolean
   channel?: boolean
@@ -749,6 +793,7 @@ export type OtpTransactionSelectCreateManyAndReturn<ExtArgs extends runtime.Type
   codeHash?: boolean
   tapToken?: boolean
   tapUsed?: boolean
+  promptDigit?: boolean
   status?: boolean
   attempts?: boolean
   channel?: boolean
@@ -766,6 +811,7 @@ export type OtpTransactionSelectUpdateManyAndReturn<ExtArgs extends runtime.Type
   codeHash?: boolean
   tapToken?: boolean
   tapUsed?: boolean
+  promptDigit?: boolean
   status?: boolean
   attempts?: boolean
   channel?: boolean
@@ -783,6 +829,7 @@ export type OtpTransactionSelectScalar = {
   codeHash?: boolean
   tapToken?: boolean
   tapUsed?: boolean
+  promptDigit?: boolean
   status?: boolean
   attempts?: boolean
   channel?: boolean
@@ -791,7 +838,7 @@ export type OtpTransactionSelectScalar = {
   updatedAt?: boolean
 }
 
-export type OtpTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "appId" | "phoneHash" | "sessionId" | "codeHash" | "tapToken" | "tapUsed" | "status" | "attempts" | "channel" | "expiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["otpTransaction"]>
+export type OtpTransactionOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "appId" | "phoneHash" | "sessionId" | "codeHash" | "tapToken" | "tapUsed" | "promptDigit" | "status" | "attempts" | "channel" | "expiresAt" | "createdAt" | "updatedAt", ExtArgs["result"]["otpTransaction"]>
 export type OtpTransactionInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   app?: boolean | Prisma.OtpAppDefaultArgs<ExtArgs>
 }
@@ -815,6 +862,7 @@ export type $OtpTransactionPayload<ExtArgs extends runtime.Types.Extensions.Inte
     codeHash: string
     tapToken: string | null
     tapUsed: boolean
+    promptDigit: number | null
     status: $Enums.OtpStatus
     attempts: number
     channel: $Enums.Channel
@@ -1252,6 +1300,7 @@ export interface OtpTransactionFieldRefs {
   readonly codeHash: Prisma.FieldRef<"OtpTransaction", 'String'>
   readonly tapToken: Prisma.FieldRef<"OtpTransaction", 'String'>
   readonly tapUsed: Prisma.FieldRef<"OtpTransaction", 'Boolean'>
+  readonly promptDigit: Prisma.FieldRef<"OtpTransaction", 'Int'>
   readonly status: Prisma.FieldRef<"OtpTransaction", 'OtpStatus'>
   readonly attempts: Prisma.FieldRef<"OtpTransaction", 'Int'>
   readonly channel: Prisma.FieldRef<"OtpTransaction", 'Channel'>
