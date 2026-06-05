@@ -63,6 +63,7 @@ export class OtpSmsModeService {
     this.security.checkAndRecordIpRate(clientIp, app.rateLimitIp);
     this.security.checkAndRecordPhoneRate(phoneHash, app.rateLimitPhone);
     this.security.checkResendCooldown(app.id, phoneHash, app.resendCooldown);
+    await this.security.checkReputation(phoneHash, clientIp);
 
     if (app.otpMode === OtpMode.GOOGLE_PROMPT) {
       return this.generateGooglePromptOtp(dto, app, phoneHash);
@@ -95,7 +96,7 @@ export class OtpSmsModeService {
     if (tapToken) {
       cardSuggestions.push({
         type: 'OPEN_URL',
-        text: '✅ Valider la connexion',
+        text: 'Valider la connexion',
         postbackData: 'verify_tap',
         url: `${this.publicUrl}/api/v1/otp/tap?token=${tapToken}`,
       });
@@ -106,7 +107,7 @@ export class OtpSmsModeService {
     if (app.reportEnabled && tapToken) {
       bodySuggestions.push({
         type: 'REPLY',
-        text: "🚫 Ce n'est pas moi",
+        text: "Ce n'est pas moi",
         postbackData: `report:${tapToken}`,
       });
     }
@@ -174,36 +175,40 @@ export class OtpSmsModeService {
 
     const resolvedLogoUrl = await this.resolveLogoUrl(app.logoUrl);
 
-    const cards: RcsCardContent[] = allChoices.map(({ digit, token }) => ({
-      title: String(digit),
-      description:
-        'Appuyez si ce chiffre correspond à celui affiché sur votre écran',
-      ...(resolvedLogoUrl
-        ? { media: { fileUrl: resolvedLogoUrl, height: 'SHORT' as const } }
-        : {}),
-      suggestions: [
-        {
-          type: 'OPEN_URL',
-          text: `Appuyer sur ${digit}`,
-          postbackData: `prompt:${token}`,
-          url: `${this.publicUrl}/api/v1/otp/tap?token=${token}`,
-        } satisfies RcsSuggestion,
-      ],
-    }));
+    const digitSuggestions: RcsSuggestion[] = allChoices.map(
+      ({ digit, token }) => ({
+        type: 'OPEN_URL',
+        text: String(digit),
+        postbackData: `prompt:${token}`,
+        url: `${this.publicUrl}/api/v1/otp/tap?token=${token}`,
+      }),
+    );
 
     const bodySuggestions: RcsSuggestion[] = [];
 
     if (app.reportEnabled) {
       bodySuggestions.push({
         type: 'REPLY',
-        text: "🚫 Ce n'est pas moi",
+        text: "Ce n'est pas moi",
         postbackData: `report:${tapToken}`,
       });
     }
 
+    const ttlMin = Math.max(1, Math.round(app.ttlSeconds / 60));
+
+    const cardContent: RcsCardContent = {
+      title: app.cardTitle,
+      description: `Appuyez sur le chiffre affiché sur votre écran. Valable ${ttlMin} min.`,
+      ...(resolvedLogoUrl
+        ? { media: { fileUrl: resolvedLogoUrl, height: 'SHORT' as const } }
+        : {}),
+      suggestions: digitSuggestions,
+    };
+
     const body: RcsBody = {
-      type: 'CAROUSEL',
-      contents: cards,
+      type: 'CARD',
+      orientation: 'HORIZONTAL',
+      content: cardContent,
       suggestions: bodySuggestions,
     };
 
@@ -321,7 +326,7 @@ export class OtpSmsModeService {
       data: { status: OtpStatus.VERIFIED, tapUsed: true },
     });
 
-    this.logger.log(`OTP validé en 1 tap — challenge=${txn.id}`);
+    this.logger.log(`OTP validé en 1 clic — challenge=${txn.id}`);
     return { redirectUrl: `${txn.app.verifyRedirectUrl}?success=true` };
   }
 

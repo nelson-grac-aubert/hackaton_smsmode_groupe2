@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { OtpStatus } from '../generated/prisma/enums';
 
-const REPORT_BUTTON_TEXT = "🚫 Ce n'est pas moi";
+const REPORT_BUTTON_TEXT = "Ce n'est pas moi";
 
 @Injectable()
 export class WebhookService {

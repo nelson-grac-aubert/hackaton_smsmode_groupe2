@@ -6,6 +6,7 @@ import { TerminusModule } from '@nestjs/terminus';
 import { ConfigModule } from '@nestjs/config';
 import { validateEnv } from './_utils/configs/env.config';
 import { WebhookModule } from './webhook/webhook.module';
+import { StatsModule } from './stats/stats.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { WebhookModule } from './webhook/webhook.module';
     OtpSmsModeModule,
     WebhookModule,
     TerminusModule,
+    StatsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
