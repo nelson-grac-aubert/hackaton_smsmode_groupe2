@@ -6,7 +6,7 @@ import './SendCodePage.css'
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1'
 
-const APP_ID = 'cmq0l9gt600004nl1catc0v2k'
+const APP_ID = 'cmq0r7wj100004nqbl2oedsc2'
 
 const order = {
   item: 'Midnight Silk Dress',
