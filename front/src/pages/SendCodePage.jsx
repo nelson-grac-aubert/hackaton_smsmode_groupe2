@@ -6,6 +6,8 @@ import './SendCodePage.css'
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1'
 
+const APP_ID = 'cmq0l9gt600004nl1catc0v2k'
+
 const order = {
   item: 'Midnight Silk Dress',
   variant: 'Taille: FR 38 | Noir Profond',
@@ -54,6 +56,8 @@ function SendCodePage() {
     try {
       const data = await postJson('/otp-sms-mode/generate', {
         phoneNumber: trimmedPhoneNumber,
+        appId: APP_ID,
+        sessionId: crypto.randomUUID(),
       })
 
       setRequestState({
@@ -61,7 +65,9 @@ function SendCodePage() {
         status: 'success',
         message: `Code envoyé. Statut fournisseur : ${data.status ?? 'accepté'}.`,
       })
-      navigate('/verification', { state: { phoneNumber: trimmedPhoneNumber } })
+      navigate('/verification', {
+        state: { phoneNumber: trimmedPhoneNumber, challengeId: data.challengeId },
+      })
     } catch (error) {
       setRequestState({
         loading: false,

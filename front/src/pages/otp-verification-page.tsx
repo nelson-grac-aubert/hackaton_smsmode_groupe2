@@ -1,12 +1,19 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import CheckoutHeader from '../components/CheckoutHeader';
 
 const OTP_LENGTH = 6;
 const TIMER_SECONDS = 59;
 const MASKED_PHONE = '06 •• •• •• 81';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000/api/v1';
 
 type Step = 'payment' | 'verification' | 'confirmation';
+type ErrorSeverity = 'warning' | 'error' | 'fatal';
+
+interface VerifyError {
+  message: string;
+  severity: ErrorSeverity;
+}
 
 const steps: Step[] = ['payment', 'verification', 'confirmation'];
 const stepLabels: Record<Step, string> = {
@@ -14,6 +21,39 @@ const stepLabels: Record<Step, string> = {
   verification: 'Vérification',
   confirmation: 'Confirmation',
 };
+
+// Maps API error reasons to user-friendly French messages
+function parseVerifyError(reason: string, remainingAttempts?: number): VerifyError {
+  switch (reason) {
+    case 'INVALID_CODE':
+      return {
+        message: remainingAttempts !== undefined
+          ? `Code incorrect — il vous reste ${remainingAttempts} tentative${remainingAttempts > 1 ? 's' : ''}.`
+          : 'Code incorrect, veuillez réessayer.',
+        severity: 'warning',
+      };
+    case 'BLOCKED':
+      return {
+        message: 'Trop de tentatives incorrectes. Veuillez recommencer depuis le début.',
+        severity: 'fatal',
+      };
+    case 'EXPIRED':
+      return {
+        message: 'Ce code a expiré. Veuillez en demander un nouveau.',
+        severity: 'fatal',
+      };
+    case 'NOT_FOUND':
+      return {
+        message: 'Session introuvable. Veuillez recommencer depuis le début.',
+        severity: 'fatal',
+      };
+    default:
+      return {
+        message: 'Une erreur est survenue, veuillez réessayer.',
+        severity: 'error',
+      };
+  }
+}
 
 function ProgressStepper({ current }: { current: Step }) {
   return (
@@ -100,6 +140,21 @@ function CountdownTimer({ onExpire }: { onExpire: () => void }) {
   );
 }
 
+// Inline error banner with icon and severity-based styling
+function ErrorBanner({ verifyError }: { verifyError: VerifyError }) {
+  const icons: Record<ErrorSeverity, string> = {
+    warning: 'WARNING',
+    error: 'ERROR',
+    fatal: 'FATAL',
+  };
+  return (
+    <div className={`error-banner error-banner--${verifyError.severity}`} role="alert">
+      <span className="error-banner__icon">{icons[verifyError.severity]}</span>
+      <span>{verifyError.message}</span>
+    </div>
+  );
+}
+
 function SecurityBadge() {
   return (
     <div className="security">
@@ -135,33 +190,52 @@ function ConfirmationScreen() {
 
 export default function OtpVerificationPage() {
   const location = useLocation();
-  const phoneNumber = (location.state as { phoneNumber?: string } | null)?.phoneNumber;
+  const navigate = useNavigate();
+
+  // challengeId is passed by SendCodePage after a successful generate
+  const state = location.state as { phoneNumber?: string; challengeId?: string } | null;
+  const phoneNumber = state?.phoneNumber;
+  const challengeId = state?.challengeId;
+
   const [code, setCode] = useState('');
   const [canResend, setCanResend] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [confirmed, setConfirmed] = useState(false);
-  const [error, setError] = useState('');
+  const [verifyError, setVerifyError] = useState<VerifyError | null>(null);
+
+  // Fatal errors (blocked, expired) disable the submit button
+  const isFatal = verifyError?.severity === 'fatal';
 
   const handleExpire = useCallback(() => setCanResend(true), []);
 
   const handleResend = () => {
     setCanResend(false);
     setCode('');
-    setError('');
-    // TODO: call API resend
+    setVerifyError(null);
+    navigate('/send-code', { state: { phoneNumber } });
   };
 
   const handleSubmit = async () => {
     if (code.length < OTP_LENGTH) {
-      setError('Veuillez saisir les 6 chiffres.');
+      setVerifyError({ message: 'Veuillez saisir les 6 chiffres.', severity: 'warning' });
       return;
     }
-    setError('');
+    setVerifyError(null);
     setIsSubmitting(true);
     try {
-      // TODO: call API verify
-      await new Promise((r) => setTimeout(r, 1800));
+      const response = await fetch(`${API_BASE_URL}/otp-sms-mode/verify`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ challengeId, code }),
+      });
+      const data = await response.json();
+      if (!response.ok || !data.valid) {
+        setVerifyError(parseVerifyError(data.reason, data.remainingAttempts));
+        return;
+      }
       setConfirmed(true);
+    } catch {
+      setVerifyError({ message: 'Erreur réseau, veuillez réessayer.', severity: 'error' });
     } finally {
       setIsSubmitting(false);
     }
@@ -191,7 +265,7 @@ export default function OtpVerificationPage() {
               <div className="card">
                 <OtpInput onChange={setCode} />
 
-                {error && <p className="error-msg" role="alert">{error}</p>}
+                {verifyError && <ErrorBanner verifyError={verifyError} />}
 
                 <p className="resend-row">
                   Vous n'avez pas reçu le code ?{' '}
@@ -208,7 +282,7 @@ export default function OtpVerificationPage() {
                 <button
                   className={`cta ${isSubmitting ? 'cta--loading' : ''}`}
                   onClick={handleSubmit}
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || isFatal}
                   aria-busy={isSubmitting}
                 >
                   {isSubmitting ? (
@@ -256,6 +330,11 @@ const CSS = `
     --on-primary: #ffffff;
     --secondary: #735c00;
     --error: #ba1a1a;
+    --error-bg: #fff1f1;
+    --warning: #a05c00;
+    --warning-bg: #fff8ee;
+    --fatal: #6b0000;
+    --fatal-bg: #fff0f0;
 
     --font-display: 'Playfair Display', Georgia, serif;
     --font-body: 'Inter', system-ui, sans-serif;
@@ -286,7 +365,6 @@ const CSS = `
     -webkit-font-smoothing: antialiased;
   }
 
-  /* TopBar */
   .topbar {
     position: sticky;
     top: 0;
@@ -307,12 +385,6 @@ const CSS = `
     transition: opacity 0.15s;
   }
   .topbar__back:hover { opacity: 0.6; }
-  .topbar__title {
-    font-family: var(--font-display);
-    font-size: 24px;
-    font-weight: 500;
-    color: var(--primary);
-  }
   .topbar__brand {
     font-family: var(--font-display);
     font-size: 20px;
@@ -321,7 +393,6 @@ const CSS = `
     letter-spacing: -0.01em;
   }
 
-  /* Main */
   .main {
     flex: 1;
     padding: var(--space-lg) var(--margin-mobile) var(--space-xl);
@@ -330,7 +401,6 @@ const CSS = `
     margin: 0 auto;
   }
 
-  /* Stepper */
   .stepper {
     display: flex;
     align-items: flex-end;
@@ -348,7 +418,6 @@ const CSS = `
   .stepper__item--done,
   .stepper__item--active { opacity: 1; }
   .stepper__label {
-    font-family: var(--font-body);
     font-size: 9px;
     font-weight: 600;
     letter-spacing: 0.06em;
@@ -357,25 +426,16 @@ const CSS = `
     white-space: nowrap;
   }
   .stepper__item--active .stepper__label { color: var(--primary); }
-  .stepper__line {
-    height: 1px;
-    width: 100%;
-    background: var(--outline-variant);
-  }
+  .stepper__line { height: 1px; width: 100%; background: var(--outline-variant); }
   .stepper__item--done .stepper__line,
-  .stepper__item--active .stepper__line {
-    background: var(--primary);
-    height: 2px;
-  }
+  .stepper__item--active .stepper__line { background: var(--primary); height: 2px; }
 
-  /* Hero */
   .hero { text-align: center; margin-bottom: var(--space-lg); }
   .hero__title {
     font-family: var(--font-display);
     font-size: 32px;
     font-weight: 500;
     line-height: 1.25;
-    letter-spacing: 0;
     color: var(--primary);
     margin-bottom: var(--space-md);
   }
@@ -388,7 +448,6 @@ const CSS = `
   }
   .hero__phone { color: var(--primary); font-weight: 600; }
 
-  /* Card */
   .card {
     background: var(--surface-white);
     border: 1px solid var(--outline-variant);
@@ -397,7 +456,6 @@ const CSS = `
     box-shadow: 0 10px 30px rgba(26,26,26,0.05);
   }
 
-  /* OTP grid */
   .otp-grid {
     display: flex;
     justify-content: center;
@@ -425,20 +483,41 @@ const CSS = `
     border-width: 2px;
     background: var(--surface-white);
   }
-  .otp-cell--filled {
-    background: var(--surface-white);
-    border-color: var(--primary);
-  }
+  .otp-cell--filled { background: var(--surface-white); border-color: var(--primary); }
 
-  /* Error */
-  .error-msg {
+  .error-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 12px 16px;
+    border-radius: var(--radius);
     font-size: 13px;
-    color: var(--error);
-    text-align: center;
+    font-weight: 500;
+    line-height: 1.5;
     margin-bottom: var(--space-md);
+    animation: slideDown 0.2s ease both;
   }
+  @keyframes slideDown {
+    from { opacity: 0; transform: translateY(-6px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .error-banner--warning {
+    background: var(--warning-bg);
+    color: var(--warning);
+    border: 1px solid #f5c97a;
+  }
+  .error-banner--error {
+    background: var(--error-bg);
+    color: var(--error);
+    border: 1px solid #f5a0a0;
+  }
+  .error-banner--fatal {
+    background: var(--fatal-bg);
+    color: var(--fatal);
+    border: 1px solid #e08080;
+  }
+  .error-banner__icon { flex-shrink: 0; font-size: 15px; }
 
-  /* Resend */
   .resend-row {
     text-align: center;
     font-size: 14px;
@@ -461,7 +540,6 @@ const CSS = `
   .resend-btn--disabled { opacity: 0.4; cursor: default; text-decoration: none; }
   .timer { color: var(--on-surface-variant); opacity: 0.7; font-size: 13px; }
 
-  /* CTA */
   .cta {
     width: 100%;
     background: var(--primary);
@@ -479,10 +557,9 @@ const CSS = `
   }
   .cta:hover { opacity: 0.85; }
   .cta:active { transform: scale(0.98); }
-  .cta:disabled { opacity: 0.6; cursor: not-allowed; }
+  .cta:disabled { opacity: 0.4; cursor: not-allowed; }
   .cta--loading { opacity: 0.7; }
 
-  /* Security */
   .security {
     margin-top: var(--space-lg);
     padding-top: var(--space-md);
@@ -502,18 +579,6 @@ const CSS = `
     color: var(--on-surface-variant);
   }
 
-  /* Brand logo */
-  .topbar__brand-group {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .brand-logo {
-    color: var(--primary);
-    flex-shrink: 0;
-  }
-
-  /* Spinner */
   .cta__spinner-row {
     display: flex;
     align-items: center;
@@ -532,7 +597,6 @@ const CSS = `
   }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Confirmation */
   .confirm {
     display: flex;
     flex-direction: column;
@@ -545,10 +609,7 @@ const CSS = `
     from { opacity: 0; transform: translateY(16px); }
     to   { opacity: 1; transform: translateY(0); }
   }
-  .confirm__icon {
-    color: var(--primary);
-    margin-bottom: var(--space-lg);
-  }
+  .confirm__icon { color: var(--primary); margin-bottom: var(--space-lg); }
   .confirm__title {
     font-family: var(--font-display);
     font-size: 32px;
@@ -570,7 +631,6 @@ const CSS = `
     margin-bottom: var(--space-xl);
   }
 
-  /* Footer */
   .footer {
     background: var(--surface-low);
     border-top: 1px solid var(--outline-variant);
@@ -597,7 +657,6 @@ const CSS = `
   }
   .footer__link:hover { color: var(--primary); }
 
-  /* Desktop overrides */
   @media (min-width: 768px) {
     .topbar { padding: 0 var(--margin-desktop); }
     .topbar__brand { font-size: 28px; }
