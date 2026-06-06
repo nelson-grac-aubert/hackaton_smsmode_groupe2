@@ -304,8 +304,8 @@ POST /webhook/rcs           → webhooks smsmode (DLR livraison + MO "Ce n'est p
 
 # Authors
 
-[Nicolas DUHAMEL](https://github.com/nicolas-duhamel)
-[Hugo BELALOUI](https://github.com/hugo-belaloui) 
-[Nelson GRAC-AUBERT](https://github.com/nelson-grac-aubert)
-[Zied ROUROU](https://github.com/ZiedRourou)
-[Mounir MEROUANE](https://github.com/MounirMER)
+[Nicolas DUHAMEL](https://github.com/nicolas-duhamel)  
+[Hugo BELALOUI](https://github.com/hugo-belaloui)   
+[Nelson GRAC-AUBERT](https://github.com/nelson-grac-aubert)  
+[Zied ROUROU](https://github.com/ZiedRourou)  
+[Mounir MEROUANE](https://github.com/MounirMER)  
