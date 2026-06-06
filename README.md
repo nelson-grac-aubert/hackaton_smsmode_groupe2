@@ -1,5 +1,6 @@
 # hackaton_smsmode_groupe2
-A lightweight solution to improve OTP generation, distribution using RTS and verification. Made during a hackaton hosted by smsmode and code4sud in june 2026. Made by Nicolas DUHAMEL, [Hugo BELALOUI](https://github.com/hugo-belaloui), Nelson GRAC-AUBERT, Zied ROUROU and Mounir MEROUANE.
+
+A lightweight solution to improve OTP generation, distribution using RTS and verification. Made during a hackaton hosted by smsmode and code4sud in june 2026. 
 
 # Déploiement local — OTP smsmode API avec docker
 
@@ -300,3 +301,11 @@ GET  /otp/tap?t=<token>     → appelé par le mobile via le bouton RCS → redi
 POST /otp/verify            → saisie manuelle du code (fallback, mode CLASSIC uniquement)
 POST /webhook/rcs           → webhooks smsmode (DLR livraison + MO "Ce n'est pas moi")
 ```
+
+# Authors
+
+[Nicolas DUHAMEL](https://github.com/nicolas-duhamel)  
+[Hugo BELALOUI](https://github.com/hugo-belaloui)   
+[Nelson GRAC-AUBERT](https://github.com/nelson-grac-aubert)  
+[Zied ROUROU](https://github.com/ZiedRourou)  
+[Mounir MEROUANE](https://github.com/MounirMER)  
