@@ -330,6 +330,9 @@ export class OtpSmsModeService {
 
     if (!txn) return failRedirect('NOT_FOUND');
     if (!txn.app.oneTapEnabled) return failRedirect('TAP_DISABLED');
+    if (txn.tapUsed && txn.status === OtpStatus.VERIFIED) {
+      return { redirectUrl: `${txn.app.verifyRedirectUrl}?success=true` };
+    }
     if (txn.tapUsed) return failRedirect('TOKEN_ALREADY_USED');
     if (txn.status !== OtpStatus.PENDING) return failRedirect(txn.status);
 
